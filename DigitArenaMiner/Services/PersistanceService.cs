@@ -17,12 +17,14 @@ public class PersistanceService : IPersistanceService
     {
         if (!await GetMessageSent(messageId))
         {
+            Console.WriteLine($"Adding message with id {messageId} to database.");
             _cache.Add(messageId);
         }
     }
 
     public async Task<bool> GetMessageSent(ulong messageId)
     {
+        Console.WriteLine($"Message with id {messageId} is in database { _cache.Contains(messageId)}");
         return _cache.Contains(messageId);
     }
 }
