@@ -90,13 +90,14 @@ namespace DigitArenaBot
 
                 if (reactionCount >= minedEmote.Threshold)
                 {
-                    ulong id = minedEmote.ChannelId;
-                    if (await _persistanceService.GetMessageSent(id))
+                    ulong channelId = minedEmote.ChannelId;
+                    ulong messageId = message.Id;
+                    if (await _persistanceService.GetMessageSent(messageId))
                     {
                         return;
                     }
                     
-                    var chnl = _client.GetChannel(id) as IMessageChannel;
+                    var chnl = _client.GetChannel(channelId) as IMessageChannel;
                     if (chnl == null)
                     {
                         return;
@@ -122,7 +123,7 @@ namespace DigitArenaBot
                     reply = reply.Replace("{M}", cutCopy);
                     
                     await chnl.SendMessageAsync(reply);
-                    await _persistanceService.SaveMessageSent(id);
+                    await _persistanceService.SaveMessageSent(messageId);
                 }
             }
         }
