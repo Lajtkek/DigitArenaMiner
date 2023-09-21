@@ -39,6 +39,7 @@ namespace DigitArenaBot.Services
                 replies.Add((mineableEmote.Id ?? mineableEmote.Name) + " - Needed reacts: " + mineableEmote.Threshold);    
             }
 
+            await RespondAsync(("LOOOOOOOOOOOOOOsing it AAAAAAAAAAAAAAAAAAA"));
             await RespondAsync(string.Join("\n", replies));
         }
         
@@ -49,6 +50,11 @@ namespace DigitArenaBot.Services
             var url = $"https://gallery.lajtkep.dev/api/files/getRandomFile.php?seed={r.NextInt64()}";
             await RespondAsync(url);
         }
-        //
+        
+        [SlashCommand("leaderboard", "Zobrazí")]
+        public async Task Leaderboard(string test)
+        {
+            await RespondAsync($"Emote {test}");
+        }
     }
 }
