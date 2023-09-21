@@ -7,4 +7,9 @@ public class MineableEmote
     public string Message { get; set; }
     public int Threshold { get; set; }
     public ulong ChannelId { get; set; }
+
+    public string EmoteIdentifier
+    {
+        get => Id ?? Name;
+    }
 }

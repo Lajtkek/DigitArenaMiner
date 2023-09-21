@@ -1,6 +1,7 @@
 ﻿﻿using System;
 using System.Collections.Generic;
-using Discord;
+ using System.Collections.Immutable;
+ using Discord;
 using Discord.Net;
 using Discord.Commands;
 using Discord.Interactions;
@@ -12,70 +13,67 @@ using DigitArenaBot.Services;
 using System.Configuration;
 using System.Linq;
 using System.Threading;
-using DigitArenaBot.Classes;
+ using DigitArenaBot;
+ using DigitArenaBot.Classes;
+ using Microsoft.EntityFrameworkCore;
+ using Microsoft.Extensions.Hosting;
 
-namespace DigitArenaBot
-{
-    class Program
-    {
+
         // setup our fields we assign later
-        private IConfigurationRoot _config;
-        private DiscordSocketClient _client;
-        private InteractionService _commands;
-        private IPersistanceService _persistanceService;
-        private ulong _testGuildId;
+         IConfigurationRoot _config;
+         DiscordSocketClient _client;
+         InteractionService _commands;
+         IPersistanceService _persistanceService;
+         ulong _testGuildId;
 
-        private IEnumerable<MineableEmote> _mineableEmotes;
+         IEnumerable<MineableEmote> _mineableEmotes;
 
-        public static Task Main(string[] args) => new Program().MainAsync();
-
-        public async Task MainAsync(string[] args)
-        {
+            HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
             
-        }
-
-        public Program()
-        {
-  
-        }
-
-        public async Task MainAsync()
-        {
-            // call ConfigureServices to create the ServiceCollection/Provider for passing around the services
-            using (var services = ConfigureServices())
+            var config = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json")
+                .Build();
+            
+            var socketConfig = new DiscordSocketConfig()
             {
-                // get the client and assign to client 
-                // you get the services via GetRequiredService<T>
-             
-                var client = services.GetRequiredService<DiscordSocketClient>();
-                var commands = services.GetRequiredService<InteractionService>();
-                _persistanceService = services.GetRequiredService<IPersistanceService>();
-                _config = services.GetRequiredService<IConfigurationRoot>();
-                _client = client;
-                _commands = commands;
-                
-                _testGuildId = ulong.Parse(_config["TestGuildId"]);
+                GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent
+            };
 
-                _mineableEmotes = _config.GetSection("MineableEmotes").Get<List<MineableEmote>>();
+            var socketClient = new DiscordSocketClient(socketConfig);
+            
+            var connectionString = config["ConnectionStrings:Db"];
+            
+            var services = builder.Services
+                .AddSingleton(socketClient)
+                .AddSingleton(config).AddDbContext<DefaultDatabaseContext>()
+                .AddSingleton<IPersistanceService, PersistanceService>()
+                .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
+                .AddSingleton<CommandHandler>()
+                .BuildServiceProvider();
 
-                // setup logging and the ready event
-                client.Log += LogAsync;
-                commands.Log += LogAsync;
-                client.Ready += ReadyAsync;
-                client.ReactionAdded += HandleReactionAsync;
+           
+        
+    
+            _client = services.GetRequiredService<DiscordSocketClient>();
+            _commands = services.GetRequiredService<InteractionService>();
+            _persistanceService =  services.GetRequiredService<IPersistanceService>();
+            _config =  services.GetRequiredService<IConfigurationRoot>();
+        
 
-                // this is where we get the Token value from the configuration file, and start the bot
-                await client.LoginAsync(TokenType.Bot, _config["Token"]);
-                await client.StartAsync();
-
-                // we get the CommandHandler class here and call the InitializeAsync method to start things up for the CommandHandler service
-                await services.GetRequiredService<CommandHandler>().InitializeAsync();
-
-                await Task.Delay(Timeout.Infinite);
-            }
-        }
-
-        private async Task HandleReactionAsync(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
+         _testGuildId = ulong.Parse(_config["TestGuildId"]);
+         _mineableEmotes = _config.GetSection("MineableEmotes").Get<List<MineableEmote>>();
+         
+            _client.Log += LogAsync;
+            _commands.Log += LogAsync;
+            _client.Ready += ReadyAsync;
+            _client.ReactionAdded += HandleReactionAsync;
+            
+         
+            
+            await _client.LoginAsync(TokenType.Bot, _config["Token"]);
+            await _client.StartAsync();
+       
+        async Task HandleReactionAsync(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
         {
             if (_client.GetUser(reaction.UserId).IsBot) return;
 
@@ -92,7 +90,7 @@ namespace DigitArenaBot
                 {
                     ulong channelId = minedEmote.ChannelId;
                     ulong messageId = message.Id;
-                    if (await _persistanceService.GetMessageSent(messageId))
+                    if (await _persistanceService.IsMessageArchived(messageId))
                     {
                         return;
                     }
@@ -123,18 +121,17 @@ namespace DigitArenaBot
                     reply = reply.Replace("{M}", cutCopy);
                     
                     await chnl.SendMessageAsync(reply);
-                    await _persistanceService.SaveMessageSent(messageId);
+                    await _persistanceService.ArchiveMessage(messageId);
                 }
             }
         }
 
-        private Task LogAsync(LogMessage log)
+        Task LogAsync(LogMessage log)
         {
             Console.WriteLine(log.ToString());
             return Task.CompletedTask;
         }
-
-        private async Task ReadyAsync()
+         async Task ReadyAsync()
         {
             if (IsDebug())
             {
@@ -151,35 +148,6 @@ namespace DigitArenaBot
         }
 
         // this method handles the ServiceCollection creation/configuration, and builds out the service provider we can call on later
-        private ServiceProvider ConfigureServices()
-        {
-            // this returns a ServiceProvider that is used later to call for those services
-            // we can add types we have access to here, hence adding the new using statement:
-            // using csharpi.Services;
-            var socketConfig = new DiscordSocketConfig()
-            {
-                GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent
-            };
-
-            var idk = new DiscordSocketClient(socketConfig);
-            
-            //todoAdd binder
-            var config = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json")
-                .Build();
-
-            var per = new PersistanceService();
-            
-            
-            return new ServiceCollection()
-                .AddSingleton(idk)
-                .AddSingleton(config)
-                .AddSingleton<IPersistanceService>(per)
-                .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
-                .AddSingleton<CommandHandler>()
-                .BuildServiceProvider();
-        }
-
         static bool IsDebug ( )
         {
             #if DEBUG
@@ -188,5 +156,5 @@ namespace DigitArenaBot
                 return false;
             #endif
         }
-    }
-}
+
+         //await Task.Delay(Timeout.Infinite);

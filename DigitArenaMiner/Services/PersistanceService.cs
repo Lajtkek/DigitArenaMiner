@@ -1,30 +1,40 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using DigitArenaBot.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace DigitArenaBot.Services;
 
 public interface IPersistanceService
 {
-    public Task SaveMessageSent(ulong messageId);
-    public Task<bool> GetMessageSent(ulong messageId);
+    public Task ArchiveMessage(ulong messageId);
+    public Task<bool> IsMessageArchived(ulong messageId);
 }
 
 public class PersistanceService : IPersistanceService
 {
-    public List<ulong> _cache = new List<ulong>();
-    
-    public async Task SaveMessageSent(ulong messageId)
+    public DefaultDatabaseContext _context;
+
+    public PersistanceService(DefaultDatabaseContext context)
     {
-        if (!await GetMessageSent(messageId))
+        _context = context;
+    }
+    
+    public async Task ArchiveMessage(ulong messageId)
+    {
+        if (!await IsMessageArchived(messageId))
         {
-            Console.WriteLine($"Adding message with id {messageId} to database.");
-            _cache.Add(messageId);
+            // await _context.ArchivedMessages.AddAsync(new ArchivedMessages()
+            // {
+            //     Id = messageId
+            // });
+            // await _context.SaveChangesAsync();
         }
     }
 
-    public async Task<bool> GetMessageSent(ulong messageId)
+    public async Task<bool> IsMessageArchived(ulong messageId)
     {
-        Console.WriteLine($"Message with id {messageId} is in database { _cache.Contains(messageId)}");
-        return _cache.Contains(messageId);
+        // return await _context.ArchivedMessages.AnyAsync(x => x.Id == messageId);
+        return true;
     }
 }
