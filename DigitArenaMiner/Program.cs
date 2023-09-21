@@ -76,7 +76,8 @@ using System.Threading;
        
         async Task HandleReactionAsync(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
         {
-            if (_client.GetUser(reaction.UserId).IsBot) return;
+            var reacter = _client.GetUser(reaction.UserId);
+            if (reacter.IsBot) return;
 
             var minedEmote = _mineableEmotes.FirstOrDefault(x => reaction.Emote.Name == x.Name);
             if (minedEmote != null)
@@ -85,12 +86,15 @@ using System.Threading;
 
                 IEmote emote = minedEmote.Id != null ? Emote.Parse(minedEmote.Id) : new Emoji(minedEmote.Name);
                 var emotes = await message.GetOrDownloadAsync().Result.GetReactionUsersAsync(emote, 1000).FlattenAsync();
-                int reactionCount = emotes.Count(); 
+                int reactionCount = emotes.Count();
 
+                ulong messageId = message.Id;
+                
+                await _persistanceService.ArchiveMessageReactions(messageId, reacter, minedEmote, reactionCount);
+                
                 if (reactionCount >= minedEmote.Threshold)
                 {
                     ulong channelId = minedEmote.ChannelId;
-                    ulong messageId = message.Id;
                     if (await _persistanceService.IsMessageArchived(messageId))
                     {
                         return;

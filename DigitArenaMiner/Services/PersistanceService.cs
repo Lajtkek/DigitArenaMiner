@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using DigitArenaBot.Classes;
 using DigitArenaBot.Models;
+using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 
 namespace DigitArenaBot.Services;
@@ -9,6 +11,9 @@ public interface IPersistanceService
 {
     public Task ArchiveMessage(ulong messageId);
     public Task<bool> IsMessageArchived(ulong messageId);
+
+    public Task<MessageReactionCount?> GetMessageReactions(ulong messageId, MineableEmote emote);
+    public Task ArchiveMessageReactions(ulong messageId, SocketUser user, MineableEmote emote, int count);
 }
 
 public class PersistanceService : IPersistanceService
@@ -35,6 +40,32 @@ public class PersistanceService : IPersistanceService
     public async Task<bool> IsMessageArchived(ulong messageId)
     {
         return await _context.ArchivedMessages.AnyAsync(x => x.Id == messageId);
-        return true;
+    }
+
+    public async Task<MessageReactionCount?> GetMessageReactions(ulong messageId, MineableEmote emote)
+    {
+        return await _context.MessageReactionCounts.FirstOrDefaultAsync(x => x.IdMessage == messageId && x.EmoteIdentifier == emote.EmoteIdentifier);
+    }
+
+    public async Task ArchiveMessageReactions(ulong messageId, SocketUser user, MineableEmote emote, int count)
+    {
+        var reactions = await GetMessageReactions(messageId, emote);
+
+        if (reactions != null)
+        {
+            reactions.Count = count;
+        }
+        else
+        {
+            await _context.MessageReactionCounts.AddAsync(new MessageReactionCount()
+            {
+                Count = count,
+                EmoteIdentifier = emote.EmoteIdentifier,
+                IdMessage = messageId,
+                IdSender = user.Id
+            });
+        }
+
+        await _context.SaveChangesAsync();
     }
 }
