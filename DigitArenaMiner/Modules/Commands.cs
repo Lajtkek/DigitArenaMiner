@@ -50,11 +50,11 @@ namespace DigitArenaBot.Services
             var url = $"https://gallery.lajtkep.dev/api/files/getRandomFile.php?seed={r.NextInt64()}";
             await RespondAsync(url);
         }
-        
-        [SlashCommand("leaderboard", "Zobrazí")]
-        public async Task Leaderboard(string test)
-        {
-            await RespondAsync($"Emote {test}");
-        }
+        //
+        // [SlashCommand("leaderboard", "Zobrazí")]
+        // public async Task Leaderboard(string test)
+        // {
+        //     await RespondAsync($"Emote {test}");
+        // }
     }
 }

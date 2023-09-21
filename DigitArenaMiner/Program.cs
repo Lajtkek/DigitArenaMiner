@@ -68,8 +68,8 @@ using System.Threading;
             _commands.Log += LogAsync;
             _client.Ready += ReadyAsync;
             _client.ReactionAdded += HandleReactionAsync;
-            
-         
+
+            await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), services);
             
             await _client.LoginAsync(TokenType.Bot, _config["Token"]);
             await _client.StartAsync();
