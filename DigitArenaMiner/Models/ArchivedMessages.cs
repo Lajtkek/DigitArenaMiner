@@ -5,5 +5,5 @@ namespace DigitArenaBot.Models;
 [PrimaryKey(("Id"))]
 public class ArchivedMessages
 {
-    public Guid Id { get; set; }
+    public ulong Id { get; set; }
 }

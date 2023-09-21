@@ -24,17 +24,17 @@ public class PersistanceService : IPersistanceService
     {
         if (!await IsMessageArchived(messageId))
         {
-            // await _context.ArchivedMessages.AddAsync(new ArchivedMessages()
-            // {
-            //     Id = messageId
-            // });
-            // await _context.SaveChangesAsync();
+            await _context.ArchivedMessages.AddAsync(new ArchivedMessages()
+            {
+                Id = messageId
+            });
+            await _context.SaveChangesAsync();
         }
     }
 
     public async Task<bool> IsMessageArchived(ulong messageId)
     {
-        // return await _context.ArchivedMessages.AnyAsync(x => x.Id == messageId);
+        return await _context.ArchivedMessages.AnyAsync(x => x.Id == messageId);
         return true;
     }
 }

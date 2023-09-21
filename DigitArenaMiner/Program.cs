@@ -29,6 +29,7 @@ using System.Threading;
          IEnumerable<MineableEmote> _mineableEmotes;
 
             HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
+         
             
             var config = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json")
@@ -45,7 +46,7 @@ using System.Threading;
             
             var services = builder.Services
                 .AddSingleton(socketClient)
-                .AddSingleton(config).AddDbContext<DefaultDatabaseContext>()
+                .AddSingleton(config).AddDbContext<DefaultDatabaseContext>(options => {}, ServiceLifetime.Singleton)
                 .AddSingleton<IPersistanceService, PersistanceService>()
                 .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
                 .AddSingleton<CommandHandler>()
@@ -157,4 +158,5 @@ using System.Threading;
             #endif
         }
 
-         //await Task.Delay(Timeout.Infinite);
+         builder.Build();
+         await Task.Delay(Timeout.Infinite);

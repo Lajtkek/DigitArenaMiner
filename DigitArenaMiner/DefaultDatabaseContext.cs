@@ -26,6 +26,6 @@ public class DefaultDatabaseContext : DbContext
         base.OnModelCreating(builder);
     }
     
-    // public DbSet<MessageReactionCount> MessageReactionCounts { get; set; }
+    public DbSet<MessageReactionCount> MessageReactionCounts { get; set; }
     public DbSet<ArchivedMessages> ArchivedMessages { get; set; }
 }
