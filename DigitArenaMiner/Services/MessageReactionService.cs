@@ -34,7 +34,8 @@ public class MessageReactionService
     public async Task OnMessageReindex(IMessage message)
     {
         var reacions = message.Reactions;
-
+        Console.WriteLine("=======================");
+        Console.WriteLine(message.Content);
         foreach (var keyValuePair in reacions)
         {
            
@@ -43,6 +44,7 @@ public class MessageReactionService
             if (minedEmote != null)
             {
                
+                Console.WriteLine(minedEmote);
                 await OnEmoteDetected(message, minedEmote);
             }
         }

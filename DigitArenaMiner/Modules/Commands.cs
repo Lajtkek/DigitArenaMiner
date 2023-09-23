@@ -78,26 +78,50 @@ namespace DigitArenaBot.Services
         }
         
         [SlashCommand("index", "idk")]
-        public async Task IndexChannel(SocketMessage arg)
+        public async Task IndexChannel(string channelIdString)
         {
-            var message = arg as SocketUserMessage;
-            var context = new SocketCommandContext(_client, message);
+            ulong channelId;
+            if (!ulong.TryParse(channelIdString, out channelId))
+            {
+                 await RespondAsync("špatnu cislo");
+                 return;
+            }
+         
 
-            if (message.Author.IsBot) return;
+            var channel = await _client.GetChannelAsync(channelId) as ISocketMessageChannel;
 
-            await RecursiveMessageHandler(message.Channel, message);
+            if (channel == null)
+            {
+                await RespondAsync("SPaTNEJC CHANNEL");
+                return;
+            }
+            
+            await RespondAsync("indexuju");
+            await RecursiveMessageHandler(channel, null);
+            await FollowupAsync("Doindexovano");
         }
         
-        private async Task RecursiveMessageHandler(ISocketMessageChannel channel, IMessage message)
+        private async Task RecursiveMessageHandler(ISocketMessageChannel channel, IMessage? message)
         {
-            var messages = await channel.GetMessagesAsync(message.Id, Direction.Before, 100).FlattenAsync();
+            if (message == null)
+            {
+                var res = await channel.GetMessagesAsync(1).FlattenAsync();
+                message = res.First();
+                await _messageReactionService.OnMessageReindex(message);
+            }
+
+            var limit = 100;
+            var messages = await channel.GetMessagesAsync(message.Id, Direction.Before, limit).FlattenAsync();
+
+            var index = 1;
             foreach (var msg in messages)
             {
-                if (msg.Id == message.Id) continue;
+                if(message.Id == msg.Id) continue;
                 
                 await _messageReactionService.OnMessageReindex(msg);
                 
-                await RecursiveMessageHandler(channel, msg);
+                if(index == limit)  await RecursiveMessageHandler(channel, msg);
+                index++;
             }
         }
     }
