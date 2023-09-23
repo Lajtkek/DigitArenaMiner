@@ -77,7 +77,7 @@ namespace DigitArenaBot.Services
             await FollowupAsync($"{emote.EmoteIdentifier} LEADERBOARD \n" + string.Join("\n",response2));
         }
         
-        [SlashCommand("index", "idk")]
+        //[SlashCommand("index", "idk")]
         // public async Task IndexChannel(string channelIdString)
         // {
         //     // if (_client.CurrentUser.Id != 256114627794960384)
@@ -107,28 +107,28 @@ namespace DigitArenaBot.Services
         //     await FollowupAsync("Doindexovano");
         // }
         
-        private async Task RecursiveMessageHandler(ISocketMessageChannel channel, IMessage? message)
-        {
-            if (message == null)
-            {
-                var res = await channel.GetMessagesAsync(1).FlattenAsync();
-                message = res.First();
-                await _messageReactionService.OnMessageReindex(message);
-            }
-
-            var limit = 500;
-            var messages = await channel.GetMessagesAsync(message.Id, Direction.Before, limit).FlattenAsync();
-
-            var index = 1;
-            foreach (var msg in messages)
-            {
-                if(message.Id == msg.Id) continue;
-                
-                await _messageReactionService.OnMessageReindex(msg);
-                
-                if(index == limit)  await RecursiveMessageHandler(channel, msg);
-                index++;
-            }
-        }
+        // private async Task RecursiveMessageHandler(ISocketMessageChannel channel, IMessage? message)
+        // {
+        //     if (message == null)
+        //     {
+        //         var res = await channel.GetMessagesAsync(1).FlattenAsync();
+        //         message = res.First();
+        //         await _messageReactionService.OnMessageReindex(message);
+        //     }
+        //
+        //     var limit = 500;
+        //     var messages = await channel.GetMessagesAsync(message.Id, Direction.Before, limit).FlattenAsync();
+        //
+        //     var index = 1;
+        //     foreach (var msg in messages)
+        //     {
+        //         if(message.Id == msg.Id) continue;
+        //         
+        //         await _messageReactionService.OnMessageReindex(msg);
+        //         
+        //         if(index == limit)  await RecursiveMessageHandler(channel, msg);
+        //         index++;
+        //     }
+        // }
     }
 }
