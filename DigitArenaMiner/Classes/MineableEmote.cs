@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace DigitArenaBot.Classes;
 
 public class MineableEmote

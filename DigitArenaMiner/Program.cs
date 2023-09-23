@@ -37,6 +37,7 @@ using System.Threading;
             
             var socketConfig = new DiscordSocketConfig()
             {
+                HandlerTimeout = 300*1000,
                 GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent
             };
 
@@ -69,8 +70,10 @@ using System.Threading;
             _client.Ready += ReadyAsync;
             _client.ReactionAdded += HandleReactionAsync;
 
-            await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), services);
+            // await _commands.AddModuleAsync<ExampleCommands>(services);
             
+            await services.GetRequiredService<CommandHandler>().InitializeAsync();
+         
             await _client.LoginAsync(TokenType.Bot, _config["Token"]);
             await _client.StartAsync();
        

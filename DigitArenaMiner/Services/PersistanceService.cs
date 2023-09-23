@@ -14,6 +14,9 @@ public interface IPersistanceService
 
     public Task<MessageReactionCount?> GetMessageReactions(ulong messageId, MineableEmote emote);
     public Task ArchiveMessageReactions(ulong messageId, SocketUser user, MineableEmote emote, int count);
+    
+    
+    public Task<List<LeaderboardItem>> Get(MineableEmote emote);
 }
 
 public class PersistanceService : IPersistanceService
@@ -67,5 +70,26 @@ public class PersistanceService : IPersistanceService
         }
 
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<List<LeaderboardItem>> Get(MineableEmote emote)
+    {
+        var a = await _context.MessageReactionCounts
+            .Where(x => x.EmoteIdentifier == emote.EmoteIdentifier)
+            .GroupBy(x => x.IdSender)
+            .Select(g => new
+            {
+                UserId = g.Key,
+                TotalCount = g.Sum(x => x.Count)
+            })
+            .OrderByDescending(x => x.TotalCount)
+            .Take(5)
+            .ToListAsync();
+        
+        return a.Select(x => new LeaderboardItem()
+        {
+            Count = x.TotalCount,
+            Id = x.UserId,
+        }).ToList();
     }
 }

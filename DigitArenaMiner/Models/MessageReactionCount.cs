@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DigitArenaBot.Models;
 
+[Index(nameof(IdSender), nameof(EmoteIdentifier))]
 public class MessageReactionCount
 {
     [Key]
