@@ -88,12 +88,13 @@ public class MessageReactionService
             var titleMessage = minedEmote.Message.Replace("{username}", "<@" + message.Author.Id + ">");
             var maxChars = 2000;
                 
-            var reply =  titleMessage+ "\n" + "{M}" + "\n" + append;
+            var reply =  $"{message.GetJumpUrl()}\n" + titleMessage + "\n" + "{M}" + "\n" + append;
 
             var cutCopy = message.Content.Replace("@", "(at)").Substring(0, Math.Min(maxChars - reply.Length, message.Content.Length));
 
             reply = reply.Replace("{M}", cutCopy);
-                
+
+            
             await chnl.SendMessageAsync(reply);
             await _persistanceService.ArchiveMessage(messageId);
         }

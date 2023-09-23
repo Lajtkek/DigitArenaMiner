@@ -5,9 +5,9 @@ using Microsoft.EntityFrameworkCore;
 namespace DigitArenaBot.Models;
 
 [Index(nameof(IdSender), nameof(EmoteIdentifier))]
+[PrimaryKey(nameof(IdMessage), nameof(EmoteIdentifier))]
 public class MessageReactionCount
 {
-    [Key]
     public ulong IdMessage { get; set; }
     public ulong IdSender { get; set; }
     

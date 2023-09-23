@@ -78,28 +78,34 @@ namespace DigitArenaBot.Services
         }
         
         [SlashCommand("index", "idk")]
-        public async Task IndexChannel(string channelIdString)
-        {
-            ulong channelId;
-            if (!ulong.TryParse(channelIdString, out channelId))
-            {
-                 await RespondAsync("špatnu cislo");
-                 return;
-            }
-         
-
-            var channel = await _client.GetChannelAsync(channelId) as ISocketMessageChannel;
-
-            if (channel == null)
-            {
-                await RespondAsync("SPaTNEJC CHANNEL");
-                return;
-            }
-            
-            await RespondAsync("indexuju");
-            await RecursiveMessageHandler(channel, null);
-            await FollowupAsync("Doindexovano");
-        }
+        // public async Task IndexChannel(string channelIdString)
+        // {
+        //     // if (_client.CurrentUser.Id != 256114627794960384)
+        //     // {
+        //     //     await RespondAsync("Může jen lajtkek :-)");
+        //     //     return;
+        //     // }
+        //
+        //     ulong channelId;
+        //     if (!ulong.TryParse(channelIdString, out channelId))
+        //     {
+        //          await RespondAsync("špatnu cislo");
+        //          return;
+        //     }
+        //  
+        //
+        //     var channel = await _client.GetChannelAsync(channelId) as ISocketMessageChannel;
+        //
+        //     if (channel == null)
+        //     {
+        //         await RespondAsync("SPaTNEJC CHANNEL");
+        //         return;
+        //     }
+        //     
+        //     await RespondAsync("indexuju");
+        //     await RecursiveMessageHandler(channel, null);
+        //     await FollowupAsync("Doindexovano");
+        // }
         
         private async Task RecursiveMessageHandler(ISocketMessageChannel channel, IMessage? message)
         {
@@ -110,7 +116,7 @@ namespace DigitArenaBot.Services
                 await _messageReactionService.OnMessageReindex(message);
             }
 
-            var limit = 100;
+            var limit = 500;
             var messages = await channel.GetMessagesAsync(message.Id, Direction.Before, limit).FlattenAsync();
 
             var index = 1;
