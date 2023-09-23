@@ -11,7 +11,7 @@ public class MessageReactionCount
     public ulong IdMessage { get; set; }
     public ulong IdSender { get; set; }
     
-    [MaxLength(32)]
+    [MaxLength(64)]
     public string EmoteIdentifier { get; set; }
     
     public int Count { get; set; }

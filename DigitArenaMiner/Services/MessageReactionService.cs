@@ -34,8 +34,8 @@ public class MessageReactionService
     public async Task OnMessageReindex(IMessage message)
     {
         var reacions = message.Reactions;
-        Console.WriteLine("=======================");
-        Console.WriteLine(message.Content);
+
+        Console.WriteLine($"Reindexuju msg {message.Id} created at {message.CreatedAt}");
         foreach (var keyValuePair in reacions)
         {
            
