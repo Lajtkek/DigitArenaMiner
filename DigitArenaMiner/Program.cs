@@ -24,6 +24,7 @@ using System.Threading;
          DiscordSocketClient _client;
          InteractionService _commands;
          IPersistanceService _persistanceService;
+         MessageReactionService _messageReactionService;
          ulong _testGuildId;
 
          IEnumerable<MineableEmote> _mineableEmotes;
@@ -51,6 +52,7 @@ using System.Threading;
                 .AddSingleton<IPersistanceService, PersistanceService>()
                 .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
                 .AddSingleton<CommandHandler>()
+                .AddSingleton<MessageReactionService>()
                 .BuildServiceProvider();
 
            
@@ -60,6 +62,7 @@ using System.Threading;
             _commands = services.GetRequiredService<InteractionService>();
             _persistanceService =  services.GetRequiredService<IPersistanceService>();
             _config =  services.GetRequiredService<IConfigurationRoot>();
+         _messageReactionService =  services.GetRequiredService<MessageReactionService>();
         
 
          _testGuildId = ulong.Parse(_config["TestGuildId"]);
@@ -81,57 +84,8 @@ using System.Threading;
         {
             var reacter = _client.GetUser(reaction.UserId);
             if (reacter.IsBot) return;
-
-            var minedEmote = _mineableEmotes.FirstOrDefault(x => reaction.Emote.Name == x.Name);
-            if (minedEmote != null)
-            {
-                var emoteName = minedEmote.Name;
-
-                IEmote emote = minedEmote.Id != null ? Emote.Parse(minedEmote.Id) : new Emoji(minedEmote.Name);
-                var emotes = await message.GetOrDownloadAsync().Result.GetReactionUsersAsync(emote, 1000).FlattenAsync();
-                int reactionCount = emotes.Count();
-
-                ulong messageId = message.Id;
-                
-                await _persistanceService.ArchiveMessageReactions(messageId, reacter, minedEmote, reactionCount);
-                
-                if (reactionCount >= minedEmote.Threshold)
-                {
-                    ulong channelId = minedEmote.ChannelId;
-                    if (await _persistanceService.IsMessageArchived(messageId))
-                    {
-                        return;
-                    }
-                    
-                    var chnl = _client.GetChannel(channelId) as IMessageChannel;
-                    if (chnl == null)
-                    {
-                        return;
-                    }
-
-                    var messageData = await message.DownloadAsync();
-                    var append = "\n";
-                    if (messageData.Attachments.Count > 0)
-                    {
-                        foreach (var messageDataAttachment in messageData.Attachments)
-                        {
-                            append += messageDataAttachment.Url + "\n";
-                        }
-                    }
-
-                    var titleMessage = minedEmote.Message.Replace("{username}", "<@" + messageData.Author.Id + ">");
-                    var maxChars = 2000;
-                    
-                    var reply =  titleMessage+ "\n" + "{M}" + "\n" + append;
-
-                    var cutCopy = messageData.Content.Replace("@", "(at)").Substring(0, Math.Min(maxChars - reply.Length, messageData.Content.Length));
-
-                    reply = reply.Replace("{M}", cutCopy);
-                    
-                    await chnl.SendMessageAsync(reply);
-                    await _persistanceService.ArchiveMessage(messageId);
-                }
-            }
+            
+            await _messageReactionService.OnMessageReaction(message, channel, reaction);
         }
 
         Task LogAsync(LogMessage log)

@@ -13,7 +13,7 @@ public interface IPersistanceService
     public Task<bool> IsMessageArchived(ulong messageId);
 
     public Task<MessageReactionCount?> GetMessageReactions(ulong messageId, MineableEmote emote);
-    public Task ArchiveMessageReactions(ulong messageId, SocketUser user, MineableEmote emote, int count);
+    public Task ArchiveMessageReactions(ulong messageId, ulong messageCreator, MineableEmote emote, int count);
     
     
     public Task<List<LeaderboardItem>> Get(MineableEmote emote);
@@ -50,7 +50,7 @@ public class PersistanceService : IPersistanceService
         return await _context.MessageReactionCounts.FirstOrDefaultAsync(x => x.IdMessage == messageId && x.EmoteIdentifier == emote.EmoteIdentifier);
     }
 
-    public async Task ArchiveMessageReactions(ulong messageId, SocketUser user, MineableEmote emote, int count)
+    public async Task ArchiveMessageReactions(ulong messageId, ulong messageCreator, MineableEmote emote, int count)
     {
         var reactions = await GetMessageReactions(messageId, emote);
 
@@ -65,7 +65,7 @@ public class PersistanceService : IPersistanceService
                 Count = count,
                 EmoteIdentifier = emote.EmoteIdentifier,
                 IdMessage = messageId,
-                IdSender = user.Id
+                IdSender = messageCreator
             });
         }
 

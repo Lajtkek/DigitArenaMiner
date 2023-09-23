@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DigitArenaBot.Classes;
+using Discord.Commands;
 using Discord.Net;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
@@ -23,15 +24,17 @@ namespace DigitArenaBot.Services
         private DiscordSocketClient _client;
         private IPersistanceService _persistanceService;
         private readonly List<MineableEmote> _mineableEmotes;
+        private readonly MessageReactionService _messageReactionService;
 
         // constructor injection is also a valid way to access the dependecies
-        public ExampleCommands (CommandHandler handler, IConfigurationRoot config, DiscordSocketClient client, IPersistanceService persistanceService)
+        public ExampleCommands (CommandHandler handler, IConfigurationRoot config, DiscordSocketClient client, IPersistanceService persistanceService, MessageReactionService messageReactionService)
         {
             _handler = handler;
             _config = config;
             _persistanceService = persistanceService;
             _client = client;
             _mineableEmotes = _config.GetSection("MineableEmotes").Get<List<MineableEmote>>();
+            _messageReactionService = messageReactionService;
         }
 
         // our first /command!
@@ -56,11 +59,15 @@ namespace DigitArenaBot.Services
             await RespondAsync(url);
         }
         
-        [SlashCommand("leaderboard", "Zobrazí")]
+        [SlashCommand("leaderboard2", "Zobrazí")]
         public async Task Leaderboard(string emoteName)
         {
             var emote = _mineableEmotes.FirstOrDefault(x => x.Name == emoteName);
-            if(emote == null) await RespondAsync($"ŠPATNEJ EMOTE dobrej emote(${string.Join(",",_mineableEmotes.Select(x => x.Name).ToList())})");
+            if (emote == null)
+            {
+                await RespondAsync($"ŠPATNEJ EMOTE dobrej emote(${string.Join(",",_mineableEmotes.Select(x => x.Name).ToList())})");
+                return;
+            }
             
             await RespondAsync("Načítám data z data_22_09_2023.csv");
             
@@ -68,6 +75,30 @@ namespace DigitArenaBot.Services
             var response2 = results.Select(x => $"<@{x.Id}> má {x.Count}").ToList();
 
             await FollowupAsync($"{emote.EmoteIdentifier} LEADERBOARD \n" + string.Join("\n",response2));
+        }
+        
+        [SlashCommand("index", "idk")]
+        public async Task IndexChannel(SocketMessage arg)
+        {
+            var message = arg as SocketUserMessage;
+            var context = new SocketCommandContext(_client, message);
+
+            if (message.Author.IsBot) return;
+
+            await RecursiveMessageHandler(message.Channel, message);
+        }
+        
+        private async Task RecursiveMessageHandler(ISocketMessageChannel channel, IMessage message)
+        {
+            var messages = await channel.GetMessagesAsync(message.Id, Direction.Before, 100).FlattenAsync();
+            foreach (var msg in messages)
+            {
+                if (msg.Id == message.Id) continue;
+                
+                await _messageReactionService.OnMessageReindex(msg);
+                
+                await RecursiveMessageHandler(channel, msg);
+            }
         }
     }
 }
