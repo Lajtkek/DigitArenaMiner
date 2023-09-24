@@ -89,7 +89,9 @@ namespace DigitArenaBot.Services
             });
         }
         
-        [SlashCommand("leaderboard2", "Zobrazí")]
+        
+        
+        [SlashCommand("leaderboard", "Zobrazí")]
         public async Task Leaderboard(string emoteName)
         {
             var emote = _mineableEmotes.FirstOrDefault(x => x.Name == emoteName);
@@ -104,7 +106,14 @@ namespace DigitArenaBot.Services
             var results = await _persistanceService.Get(emote);
             var response2 = results.Select(x => $"<@{x.Id}> má {x.Count}").ToList();
 
-            await FollowupAsync($"{emote.EmoteIdentifier} LEADERBOARD \n" + string.Join("\n",response2));
+            var embedBuilder = new EmbedBuilder
+            {
+                Title = $"{emote.EmoteIdentifier} Leaderboard ",
+                Description = string.Join("\n",response2),
+                Color = Color.Default // You can set the color of the embed here
+            };
+
+            await FollowupAsync(null, embed: embedBuilder.Build(), allowedMentions: Discord.AllowedMentions.None);
         }
         
         [SlashCommand("good-morning", "idk")]
