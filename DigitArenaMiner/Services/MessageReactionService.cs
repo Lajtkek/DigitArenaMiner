@@ -1,5 +1,6 @@
 using DigitArenaBot.Classes;
 using Discord;
+using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Binder;
@@ -86,17 +87,20 @@ public class MessageReactionService
                 }
             }
 
-            var titleMessage = minedEmote.Message.Replace("{username}", "<@" + message.Author.Id + ">");
+            var titleMessage = minedEmote.Message.Replace("{username}", message.Author.Username);
             var maxChars = 2000;
-                
-            var reply =  $"{message.GetJumpUrl()}\n" + titleMessage + "\n" + "{M}" + "\n" + append;
-
-            var cutCopy = message.Content.Replace("@", "(at)").Substring(0, Math.Min(maxChars - reply.Length, message.Content.Length));
-
-            reply = reply.Replace("{M}", cutCopy);
-
             
-            await chnl.SendMessageAsync(reply);
+            var embedBuilder = new EmbedBuilder
+            {
+                Title = titleMessage,
+                // Description = messageData,
+                Color = Color.Default,
+                Url = message.GetJumpUrl()
+            };
+
+            await chnl.SendMessageAsync(embed: embedBuilder.Build(), allowedMentions: AllowedMentions.All);
+            await chnl.SendMessageAsync(messageData, embeds: message.Embeds as Embed[]);
+            
             await _persistanceService.ArchiveMessage(messageId);
         }
     }
