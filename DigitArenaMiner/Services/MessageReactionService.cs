@@ -1,9 +1,11 @@
+using System.Net;
 using DigitArenaBot.Classes;
 using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Binder;
+using EmbedBuilder = Discord.EmbedBuilder;
 
 namespace DigitArenaBot.Services;
 
@@ -93,13 +95,40 @@ public class MessageReactionService
             var embedBuilder = new EmbedBuilder
             {
                 Title = titleMessage,
-                // Description = messageData,
+                Description = messageData,
                 Color = Color.Default,
                 Url = message.GetJumpUrl()
             };
 
-            await chnl.SendMessageAsync(embed: embedBuilder.Build(), allowedMentions: AllowedMentions.All);
-            await chnl.SendMessageAsync(messageData, embeds: message.Embeds as Embed[]);
+            // await chnl.SendMessageAsync(embed: embedBuilder.Build(), allowedMentions: AllowedMentions.All);
+            
+            if (message.Attachments.Any())
+            {
+
+                var att = new List<FileAttachment>();
+                var streamList = new List<Stream>();
+                foreach (var file in message.Attachments)
+                {
+                    using (var client = new WebClient())
+                    {
+                        var content = client.DownloadData(file.Url);
+                        streamList.Add(new MemoryStream((byte[])content));
+                        
+                        att.Add(new FileAttachment(streamList.Last(), file.Filename, "kopie, kopie, kopie..."));
+                        
+                        
+                    }   
+                    
+                }
+                
+                await chnl.SendFilesAsync(att, embed: embedBuilder.Build(), stickers: message.Stickers as ISticker[]);
+
+                foreach (var stream in streamList)
+                {
+                    await stream.DisposeAsync();
+                }
+            }else
+                await chnl.SendMessageAsync(messageData, stickers: message.Stickers as ISticker[]);
             
             await _persistanceService.ArchiveMessage(messageId);
         }
