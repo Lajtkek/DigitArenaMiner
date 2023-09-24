@@ -101,27 +101,23 @@ public class MessageReactionService
             };
 
             // await chnl.SendMessageAsync(embed: embedBuilder.Build(), allowedMentions: AllowedMentions.All);
-            
+
             if (message.Attachments.Any())
             {
-
                 var att = new List<FileAttachment>();
                 var streamList = new List<Stream>();
-                foreach (var file in message.Attachments)
+                using (var client = new WebClient())
                 {
-                    using (var client = new WebClient())
+                    foreach (var file in message.Attachments)
                     {
-                        var content = client.DownloadData(file.Url);
+
+                        var content = await client.DownloadDataTaskAsync(file.Url);
                         streamList.Add(new MemoryStream((byte[])content));
-                        
                         att.Add(new FileAttachment(streamList.Last(), file.Filename, "kopie, kopie, kopie..."));
-                        
-                        
-                    }   
-                    
+                    }
                 }
-                
-                await chnl.SendFilesAsync(att, embed: embedBuilder.Build(), stickers: message.Stickers as ISticker[]);
+
+            await chnl.SendFilesAsync(att, embed: embedBuilder.Build(), stickers: message.Stickers as ISticker[]);
 
                 foreach (var stream in streamList)
                 {
