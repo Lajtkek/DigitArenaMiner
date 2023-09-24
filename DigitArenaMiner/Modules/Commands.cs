@@ -166,7 +166,6 @@ namespace DigitArenaBot.Services
          public async Task Kiss(SocketGuildUser userToKiss)
          {
              ulong id = Context.Interaction.User.Id;
-             
              ulong channelId = Context.Interaction.Channel.Id;
        
              var channel = await _client.GetChannelAsync(channelId) as ISocketMessageChannel;

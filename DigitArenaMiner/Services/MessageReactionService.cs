@@ -124,7 +124,7 @@ public class MessageReactionService
                     await stream.DisposeAsync();
                 }
             }else
-                await chnl.SendMessageAsync(messageData, stickers: message.Stickers as ISticker[]);
+                await chnl.SendMessageAsync(messageData, embed: embedBuilder.Build(), stickers: message.Stickers as ISticker[]);
             
             await _persistanceService.ArchiveMessage(messageId);
         }
