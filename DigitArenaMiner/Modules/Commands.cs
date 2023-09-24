@@ -97,7 +97,7 @@ namespace DigitArenaBot.Services
             var emote = _mineableEmotes.FirstOrDefault(x => x.Name == emoteName);
             if (emote == null)
             {
-                await RespondAsync($"ŠPATNEJ EMOTE dobrej emote(${string.Join(",",_mineableEmotes.Select(x => x.Name).ToList())})");
+                await RespondAsync($"Emote není registrován, registrované emoty jsou ({string.Join(",",_mineableEmotes.Select(x => x.Name).ToList())})");
                 return;
             }
             
@@ -142,29 +142,22 @@ namespace DigitArenaBot.Services
          public async Task IndexChannel(string channelIdString)
          {
              ulong id = Context.Interaction.User.Id;
+             ulong channelId = Context.Interaction.Channel.Id;
              if (id != 256114627794960384)
              {
                  await RespondAsync("Může jen lajtkek :-)");
                  return;
              }
         
-             ulong channelId;
-             if (!ulong.TryParse(channelIdString, out channelId))
-             {
-                  await RespondAsync("špatnu cislo");
-                  return;
-             }
-          
-        
              var channel = await _client.GetChannelAsync(channelId) as ISocketMessageChannel;
         
              if (channel == null)
              {
-                 await RespondAsync("SPaTNEJC CHANNEL");
+                 await RespondAsync("Channel neexistuje");
                  return;
              }
              
-             await RespondAsync("indexuju");
+             await RespondAsync("Začínám indexovat");
              await RecursiveMessageHandler(channel, null);
              await FollowupAsync("Doindexovano");
          }
