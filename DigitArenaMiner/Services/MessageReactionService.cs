@@ -27,7 +27,8 @@ public class MessageReactionService
         
         if (minedEmote != null)
         {
-            await OnEmoteDetected(message.Value, minedEmote);
+            var dmsg = await message.DownloadAsync();
+            await OnEmoteDetected(dmsg, minedEmote);
         }
     }
 
@@ -43,7 +44,6 @@ public class MessageReactionService
 
             if (minedEmote != null)
             {
-               
                 Console.WriteLine(minedEmote);
                 await OnEmoteDetected(message, minedEmote);
             }
@@ -54,6 +54,7 @@ public class MessageReactionService
     {
         IEmote emote = minedEmote.Id != null ? Emote.Parse(minedEmote.Id) : new Emoji(minedEmote.Name);
         
+        Console.WriteLine(message.Reactions.Keys.Count());
         var emotes = await message.GetReactionUsersAsync(emote, 1000).FlattenAsync();
         int reactionCount = emotes.Count();
 

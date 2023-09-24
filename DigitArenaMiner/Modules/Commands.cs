@@ -11,6 +11,7 @@ using Discord.Commands;
 using Discord.Net;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using Npgsql.Replication.TestDecoding;
 
 namespace DigitArenaBot.Services
 {
@@ -35,6 +36,8 @@ namespace DigitArenaBot.Services
             _client = client;
             _mineableEmotes = _config.GetSection("MineableEmotes").Get<List<MineableEmote>>();
             _messageReactionService = messageReactionService;
+            
+            
         }
 
         // our first /command!
@@ -54,9 +57,26 @@ namespace DigitArenaBot.Services
         [SlashCommand("get-gem", "Random gem z gallerid")]
         public async Task GetGem()
         {
+            string username = Context.Interaction.User.Username;
             Random r = new Random();
             var url = $"https://gallery.lajtkep.dev/api/files/getRandomFile.php?seed={r.NextInt64()}";
-            await RespondAsync(url);
+            
+            var embedBuilder = new EmbedBuilder
+            {
+                Title = $"Tady máš gem {username}.",
+                // Description = "This is an example of an embed with an image.",
+                Color = Color.Blue // You can set the color of the embed here
+            };
+
+            // Add an image to the embed
+            embedBuilder.ImageUrl = url;
+            
+            var embed = embedBuilder.Build();
+            
+            await RespondAsync(null, new Embed[]
+            {
+                embed
+            });
         }
         
         [SlashCommand("leaderboard2", "Zobrazí")]
@@ -77,58 +97,81 @@ namespace DigitArenaBot.Services
             await FollowupAsync($"{emote.EmoteIdentifier} LEADERBOARD \n" + string.Join("\n",response2));
         }
         
-        //[SlashCommand("index", "idk")]
-        // public async Task IndexChannel(string channelIdString)
-        // {
-        //     // if (_client.CurrentUser.Id != 256114627794960384)
-        //     // {
-        //     //     await RespondAsync("Může jen lajtkek :-)");
-        //     //     return;
-        //     // }
-        //
-        //     ulong channelId;
-        //     if (!ulong.TryParse(channelIdString, out channelId))
-        //     {
-        //          await RespondAsync("špatnu cislo");
-        //          return;
-        //     }
-        //  
-        //
-        //     var channel = await _client.GetChannelAsync(channelId) as ISocketMessageChannel;
-        //
-        //     if (channel == null)
-        //     {
-        //         await RespondAsync("SPaTNEJC CHANNEL");
-        //         return;
-        //     }
-        //     
-        //     await RespondAsync("indexuju");
-        //     await RecursiveMessageHandler(channel, null);
-        //     await FollowupAsync("Doindexovano");
-        // }
+        [SlashCommand("good-morning", "idk")]
+        public async Task GoodMorning()
+        {
+            string username = Context.Interaction.User.Username;
+
+            var embedBuilder = new EmbedBuilder
+            {
+                Title = $"Good morning {username}.",
+                // Description = "This is an example of an embed with an image.",
+                Color = Color.Default // You can set the color of the embed here
+            };
+
+            // Add an image to the embed
+            embedBuilder.ImageUrl = "https://gallery.lajtkep.dev/resources/873eb6ac2ebe161ddc0f2303761a5f999a5421e802c578100318d6b390025d6d.jpg"; // Replace with the URL of the image you want to include
+
+            // Build the embed
+            var embed = embedBuilder.Build();
+            
+            await RespondAsync(
+                $"", new []{ embed });
+        }
         
-        // private async Task RecursiveMessageHandler(ISocketMessageChannel channel, IMessage? message)
-        // {
-        //     if (message == null)
-        //     {
-        //         var res = await channel.GetMessagesAsync(1).FlattenAsync();
-        //         message = res.First();
-        //         await _messageReactionService.OnMessageReindex(message);
-        //     }
-        //
-        //     var limit = 500;
-        //     var messages = await channel.GetMessagesAsync(message.Id, Direction.Before, limit).FlattenAsync();
-        //
-        //     var index = 1;
-        //     foreach (var msg in messages)
-        //     {
-        //         if(message.Id == msg.Id) continue;
-        //         
-        //         await _messageReactionService.OnMessageReindex(msg);
-        //         
-        //         if(index == limit)  await RecursiveMessageHandler(channel, msg);
-        //         index++;
-        //     }
-        // }
+        [SlashCommand("index", "idk")]
+         public async Task IndexChannel(string channelIdString)
+         {
+             ulong id = Context.Interaction.User.Id;
+             if (id != 256114627794960384)
+             {
+                 await RespondAsync("Může jen lajtkek :-)");
+                 return;
+             }
+        
+             ulong channelId;
+             if (!ulong.TryParse(channelIdString, out channelId))
+             {
+                  await RespondAsync("špatnu cislo");
+                  return;
+             }
+          
+        
+             var channel = await _client.GetChannelAsync(channelId) as ISocketMessageChannel;
+        
+             if (channel == null)
+             {
+                 await RespondAsync("SPaTNEJC CHANNEL");
+                 return;
+             }
+             
+             await RespondAsync("indexuju");
+             await RecursiveMessageHandler(channel, null);
+             await FollowupAsync("Doindexovano");
+         }
+        
+         private async Task RecursiveMessageHandler(ISocketMessageChannel channel, IMessage? message)
+         {
+             if (message == null)
+             {
+                 var res = await channel.GetMessagesAsync(1).FlattenAsync();
+                 message = res.First();
+                 await _messageReactionService.OnMessageReindex(message);
+             }
+        
+             var limit = 500;
+             var messages = await channel.GetMessagesAsync(message.Id, Direction.Before, limit).FlattenAsync();
+        
+             var index = 1;
+             foreach (var msg in messages)
+             {
+                 if(message.Id == msg.Id) continue;
+                 
+                 await _messageReactionService.OnMessageReindex(msg);
+                 
+                 if(index == limit)  await RecursiveMessageHandler(channel, msg);
+                 index++;
+             }
+         }
     }
 }
