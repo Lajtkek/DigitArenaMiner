@@ -138,8 +138,8 @@ namespace DigitArenaBot.Services
                 $"", new []{ embed });
         }
         
-        [SlashCommand("index", "idk")]
-         public async Task IndexChannel(string channelIdString)
+        [SlashCommand("index-channel", "Projede všechny zrávy a uloží emotes")]
+         public async Task IndexChannel()
          {
              ulong id = Context.Interaction.User.Id;
              ulong channelId = Context.Interaction.Channel.Id;
