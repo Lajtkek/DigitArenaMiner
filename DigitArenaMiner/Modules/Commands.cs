@@ -27,6 +27,8 @@ namespace DigitArenaBot.Services
         private readonly List<MineableEmote> _mineableEmotes;
         private readonly MessageReactionService _messageReactionService;
 
+        private List<ulong> _allowedChannels;
+
         // constructor injection is also a valid way to access the dependecies
         public ExampleCommands (CommandHandler handler, IConfigurationRoot config, DiscordSocketClient client, IPersistanceService persistanceService, MessageReactionService messageReactionService)
         {
@@ -37,7 +39,7 @@ namespace DigitArenaBot.Services
             _mineableEmotes = _config.GetSection("MineableEmotes").Get<List<MineableEmote>>();
             _messageReactionService = messageReactionService;
             
-            
+            _allowedChannels = _config.GetSection("AllowedChannels").Get<List<ulong>>();
         }
 
         // our first /command!
@@ -58,6 +60,14 @@ namespace DigitArenaBot.Services
         public async Task GetGem()
         {
             string username = Context.Interaction.User.Username;
+            ulong cChannelId = Context.Interaction.Channel.Id;
+
+            if (!_allowedChannels.Contains(cChannelId))
+            {
+                await RespondAsync($"Gemy postuju jen do arény.");
+                return;
+            }
+            
             Random r = new Random();
             var url = $"https://gallery.lajtkep.dev/api/files/getRandomFile.php?seed={r.NextInt64()}";
             
