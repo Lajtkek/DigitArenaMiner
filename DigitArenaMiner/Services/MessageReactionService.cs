@@ -1,6 +1,7 @@
 using System.Net;
 using DigitArenaBot.Classes;
 using Discord;
+using Discord.Interactions;
 using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
@@ -15,6 +16,7 @@ public class MessageReactionService
     private readonly List<MineableEmote> _mineableEmotes;
     private readonly IPersistanceService _persistanceService;
     private readonly DiscordSocketClient _client;
+    private readonly InteractionService _interactionService;
 
     public MessageReactionService (CommandHandler handler, IConfigurationRoot config, DiscordSocketClient client, IPersistanceService persistanceService)
     {

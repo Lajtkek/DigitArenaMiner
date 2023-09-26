@@ -40,7 +40,12 @@ namespace DigitArenaBot.Services
             _messageReactionService = messageReactionService;
             
             _allowedChannels = _config.GetSection("AllowedChannels").Get<List<ulong>>();
+            
+            var userActions = _config.GetSection("UserActions").Get<List<UserAction>>();
+
+
         }
+
 
         // our first /command!
         [SlashCommand("get-emotes", "Získá všechny třízene emotes")]
@@ -160,29 +165,6 @@ namespace DigitArenaBot.Services
              await RespondAsync("Začínám indexovat");
              await RecursiveMessageHandler(channel, null);
              await FollowupAsync("Doindexovano");
-         }
-         
-         [SlashCommand("kiss", "xxx")]
-         public async Task Kiss(SocketGuildUser userToKiss)
-         {
-             ulong id = Context.Interaction.User.Id;
-             ulong channelId = Context.Interaction.Channel.Id;
-       
-             var channel = await _client.GetChannelAsync(channelId) as ISocketMessageChannel;
-        
-             if (channel == null)
-             {
-                 await RespondAsync("Channel neexistuje");
-                 return;
-             }
-
-             var msg = $"Hej <@{userToKiss.Id}>, <@{id}> ti posílá pusinku";
-
-             var embed = new EmbedBuilder();
-             embed.ImageUrl =
-                 "https://gallery.lajtkep.dev/resources/09df892591f7c0b3f6649b3bc085c3fbb90d7f43c933c38385a76d81f77dfc62.gif";
-             
-             await RespondAsync(msg, embeds: new []{embed.Build()});
          }
         
          private async Task RecursiveMessageHandler(ISocketMessageChannel channel, IMessage? message)

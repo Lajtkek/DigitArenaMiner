@@ -25,6 +25,7 @@ using System.Threading;
          InteractionService _commands;
          IPersistanceService _persistanceService;
          MessageReactionService _messageReactionService;
+         DynamicCommandService _dynamicCommandService;
          ulong _testGuildId;
 
          IEnumerable<MineableEmote> _mineableEmotes;
@@ -53,6 +54,7 @@ using System.Threading;
                 .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
                 .AddSingleton<CommandHandler>()
                 .AddSingleton<MessageReactionService>()
+                .AddSingleton<DynamicCommandService>()
                 .BuildServiceProvider();
 
            
@@ -63,8 +65,8 @@ using System.Threading;
             _persistanceService =  services.GetRequiredService<IPersistanceService>();
             _config =  services.GetRequiredService<IConfigurationRoot>();
          _messageReactionService =  services.GetRequiredService<MessageReactionService>();
-        
-
+         _dynamicCommandService = services.GetRequiredService<DynamicCommandService>();
+         
          _testGuildId = ulong.Parse(_config["TestGuildId"]);
          _mineableEmotes = _config.GetSection("MineableEmotes").Get<List<MineableEmote>>();
          
@@ -106,6 +108,8 @@ using System.Threading;
                 // this method will add commands globally, but can take around an hour
                 await _commands.RegisterCommandsGloballyAsync(true);
             }
+
+            await _dynamicCommandService.RegisterDynamicCommands();
             Console.WriteLine($"Connected as -> [{_client.CurrentUser}] :)");
         }
 
