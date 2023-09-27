@@ -28,4 +28,5 @@ public class DefaultDatabaseContext : DbContext
     
     public DbSet<MessageReactionCount> MessageReactionCounts { get; set; }
     public DbSet<ArchivedMessages> ArchivedMessages { get; set; }
+    public DbSet<UserActionCount> UserActionCounts { get; set; }
 }

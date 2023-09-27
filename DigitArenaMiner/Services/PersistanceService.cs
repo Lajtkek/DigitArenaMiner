@@ -14,9 +14,11 @@ public interface IPersistanceService
 
     public Task<MessageReactionCount?> GetMessageReactions(ulong messageId, MineableEmote emote);
     public Task ArchiveMessageReactions(ulong messageId, ulong messageCreator, MineableEmote emote, int count);
-    
-    
     public Task<List<LeaderboardItem>> Get(MineableEmote emote);
+
+    public Task UpdateUserActionCount(string actionName, ulong userId);
+    public Task<UserActionCount?> GetUserActionCount(string actionName,ulong userId);
+    public Task<List<LeaderboardItem>> GetTopUserActionCount(string actionName);
 }
 
 public class PersistanceService : IPersistanceService
@@ -83,7 +85,55 @@ public class PersistanceService : IPersistanceService
                 TotalCount = g.Sum(x => x.Count)
             })
             .OrderByDescending(x => x.TotalCount)
-            .Take(5)
+            .Take(10)
+            .ToListAsync();
+        
+        return a.Select(x => new LeaderboardItem()
+        {
+            Count = x.TotalCount,
+            Id = x.UserId,
+        }).ToList();
+    }
+
+    public async Task UpdateUserActionCount(string actionName, ulong userId)
+    {
+        var count = await GetUserActionCount(actionName, userId);
+
+        if (count != null)
+        {
+            count.Count += 1;
+        }
+        else
+        {
+            await _context.UserActionCounts.AddAsync(new UserActionCount()
+            {
+                Count = 1,
+                ActionName = actionName,
+                UserId = userId
+            });
+        }
+
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<UserActionCount?> GetUserActionCount(string actionName, ulong userId)
+    {
+        return await _context.UserActionCounts.FirstOrDefaultAsync(
+            x => x.ActionName == actionName && x.UserId == userId);
+    }
+
+    public async Task<List<LeaderboardItem>> GetTopUserActionCount(string actionName)
+    {
+        var a = await _context.UserActionCounts
+            .Where(x => x.ActionName == actionName)
+            .GroupBy(x => x.UserId)
+            .Select(g => new
+            {
+                UserId = g.Key,
+                TotalCount = g.Sum(x => x.Count)
+            })
+            .OrderByDescending(x => x.TotalCount)
+            .Take(10)
             .ToListAsync();
         
         return a.Select(x => new LeaderboardItem()
