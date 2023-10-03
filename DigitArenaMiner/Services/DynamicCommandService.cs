@@ -130,7 +130,7 @@ public class DynamicCommandService
         {
             new EmbedFieldBuilder()
             {
-                Name = "Otázka",
+                Name = "Otázka:",
                 Value = question
             },
             new EmbedFieldBuilder()
