@@ -67,6 +67,7 @@ namespace DigitArenaBot.Services
                 builder.ImageUrl =
                     "https://gallery.lajtkep.dev/resources/20543adff049ce884e9296ffe327a47b8c8a9906cded39a839c678019e803020.png";
                 builder.Title = "Tadááááá";
+                builder.Description = $"Zmáčkl ho {component.User.Username}";
                
                 await component.RespondAsync("", embed: builder.Build());
             };
