@@ -35,7 +35,7 @@ namespace DigitArenaBot.Services
             var startTimeSpan = TimeSpan.Zero;
             var periodTimeSpan = TimeSpan.FromMinutes(1);
 
-            Console.WriteLine($"REGISTERED {time.ToUniversalTime()} at {DateTime.Now.ToUniversalTime()}");
+            Console.WriteLine($"REGISTERED {time.ToUniversalTime()} at {DateTime.UtcNow.ToUniversalTime()}");
             _eventTimes.Add(time);
             
             if (_timer != null) return;
@@ -44,8 +44,8 @@ namespace DigitArenaBot.Services
             {
                 Console.WriteLine($"{DateTime.Now} TICK EVENTS:{_eventTimes.Count}");
                 
-                var events = _eventTimes.Where(x => x <= DateTime.Now);
-                _eventTimes = _eventTimes.Where(x => x > DateTime.Now).ToList();
+                var events = _eventTimes.Where(x => x <= DateTime.UtcNow);
+                _eventTimes = _eventTimes.Where(x => x > DateTime.UtcNow).ToList();
 
                 foreach (var UPPER in events)
                 {
