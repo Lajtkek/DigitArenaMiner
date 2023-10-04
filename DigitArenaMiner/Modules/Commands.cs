@@ -190,5 +190,21 @@ namespace DigitArenaBot.Services
                  index++;
              }
          }
+
+         [SlashCommand("toggle-tomokoposting", "togluju tomokoposting")]
+         private async Task ToggleTomokoPosting()
+         {
+             ulong id = Context.Interaction.User.Id;
+             ulong channelId = Context.Interaction.Channel.Id;
+             if (id != 256114627794960384)
+             {
+                 await RespondAsync("Může jen lajtkek :-)");
+                 return;
+             }
+             
+             TimeService.isTomokopostingActivated = !TimeService.isTomokopostingActivated;
+
+             await RespondAsync($"{Context.User.Username} togloval tomokoposting na {TimeService.isTomokopostingActivated}");
+         }
     }
 }
