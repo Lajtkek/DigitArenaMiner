@@ -25,11 +25,10 @@ namespace DigitArenaBot.Services
             _client = client;
             _commands = commands;
             _services = services;
-            InitializeAsync();
             Console.WriteLine("init end");
         }
 
-        public Task InitializeAsync()
+        public async Task InitializeAsync()
         {
             var startTimeSpan = TimeSpan.Zero;
             var periodTimeSpan = TimeSpan.FromMinutes(1);
