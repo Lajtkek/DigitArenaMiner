@@ -24,9 +24,10 @@ namespace DigitArenaBot.Services
             _client = client;
             _commands = commands;
             _services = services;
+            InitializeAsync();
         }
 
-        public async Task InitializeAsync()
+        public Task InitializeAsync()
         {
             var startTimeSpan = TimeSpan.Zero;
             var periodTimeSpan = TimeSpan.FromMinutes(1);
@@ -40,7 +41,7 @@ namespace DigitArenaBot.Services
                     await PostTomoko();
                 }
             }, null, startTimeSpan, periodTimeSpan);
-            
+            return Task.CompletedTask;
         }
 
         private async Task PostTomoko()
