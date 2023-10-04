@@ -51,7 +51,7 @@ namespace DigitArenaBot.Services
                 new Question()
                 {
                     Title = "Best anime waifu",
-                    Options = new List<string>() { "Tomoko", "Konata", "placeholder" },
+                    Options = new List<string>() { "Tomoko", "Konata", "Natsuki" },
                     RightOptionIndex = 0
                 },
                 new Question()
@@ -68,8 +68,17 @@ namespace DigitArenaBot.Services
                     "https://gallery.lajtkep.dev/resources/20543adff049ce884e9296ffe327a47b8c8a9906cded39a839c678019e803020.png";
                 builder.Title = "Tadááááá";
                 builder.Description = $"Zmáčkl ho {component.User.Username}";
+
+                if (component.Data.CustomId == "Tomoko")
+                {
+                    
+                    await component.RespondAsync("", embed: builder.Build());
+                }
+                else
+                {
+                    await component.RespondAsync($"{component.User.Username} vyber Tomoko.");
+                }
                
-                await component.RespondAsync("", embed: builder.Build());
             };
         }
         
@@ -82,7 +91,7 @@ namespace DigitArenaBot.Services
              
              foreach (var answer in question.Options)
              {
-                 builder.WithButton(answer, index + answer);
+                 builder.WithButton(answer, answer == "Tomoko" ? "Tomoko" : index + answer);
              }
              
              await RespondAsync("Zmáčkni ho", components: builder.Build());
