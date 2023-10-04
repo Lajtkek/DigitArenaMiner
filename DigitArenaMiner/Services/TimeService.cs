@@ -21,10 +21,12 @@ namespace DigitArenaBot.Services
 
         public TimeService(DiscordSocketClient client, InteractionService commands, IServiceProvider services)
         {
+            Console.WriteLine("init start");
             _client = client;
             _commands = commands;
             _services = services;
             InitializeAsync();
+            Console.WriteLine("init end");
         }
 
         public Task InitializeAsync()
