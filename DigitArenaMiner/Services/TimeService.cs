@@ -42,7 +42,6 @@ namespace DigitArenaBot.Services
                     await PostTomoko();
                 }
             }, null, startTimeSpan, periodTimeSpan);
-            return Task.CompletedTask;
         }
 
         private async Task PostTomoko()
