@@ -204,6 +204,7 @@ namespace DigitArenaBot.Services
              }
 
              await _timeService.RegisterEvent(time);
+             await RespondAsync($"Registrován event na {time.ToUniversalTime()}");
          }
     }
 }

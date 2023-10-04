@@ -19,7 +19,7 @@ namespace DigitArenaBot.Services
         public static bool isTomokopostingActivated = false;
         public System.Threading.Timer? _timer;
 
-        private List<DateTime> _eventTimes;
+        private List<DateTime> _eventTimes = new List<DateTime>();
 
         public TimeService(DiscordSocketClient client, InteractionService commands, IServiceProvider services)
         {
