@@ -55,7 +55,7 @@ using System.Threading;
                 .AddSingleton<CommandHandler>()
                 .AddSingleton<MessageReactionService>()
                 .AddSingleton<DynamicCommandService>()
-                .AddSingleton<TimeService>()
+                .AddTransient<TimeService>()
                 .BuildServiceProvider();
 
            
