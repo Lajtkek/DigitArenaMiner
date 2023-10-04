@@ -32,6 +32,7 @@ namespace DigitArenaBot.Services
 
             var timer = new System.Threading.Timer(async (e) =>
             {
+                Console.WriteLine("TICK");
                 if (isTomokopostingActivated)
                 {
                     await PostTomoko();

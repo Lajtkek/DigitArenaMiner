@@ -54,7 +54,7 @@ using System.Threading;
                 .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
                 .AddSingleton<CommandHandler>()
                 .AddSingleton<MessageReactionService>()
-                .AddSingleton<DynamicCommandService>()
+                .AddSingleton<DynamicCommandService>().AddSingleton<TimeService>()
                 .BuildServiceProvider();
 
            
