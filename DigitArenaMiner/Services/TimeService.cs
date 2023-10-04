@@ -16,7 +16,8 @@ namespace DigitArenaBot.Services
         private readonly InteractionService _commands;
         private readonly IServiceProvider _services;
 
-        public static bool isTomokopostingActivated = false; 
+        public static bool isTomokopostingActivated = false;
+        public System.Threading.Timer _timer;
 
         public TimeService(DiscordSocketClient client, InteractionService commands, IServiceProvider services)
         {
@@ -30,14 +31,16 @@ namespace DigitArenaBot.Services
             var startTimeSpan = TimeSpan.Zero;
             var periodTimeSpan = TimeSpan.FromMinutes(1);
 
-            var timer = new System.Threading.Timer(async (e) =>
+            Console.WriteLine("start timer");
+            _timer = new System.Threading.Timer(async (e) =>
             {
-                Console.WriteLine("TICK");
+                Console.WriteLine($"{DateTime.Now} TICK");
                 if (isTomokopostingActivated)
                 {
                     await PostTomoko();
                 }
             }, null, startTimeSpan, periodTimeSpan);
+            
         }
 
         private async Task PostTomoko()
