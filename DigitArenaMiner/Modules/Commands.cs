@@ -44,8 +44,6 @@ namespace DigitArenaBot.Services
             _allowedChannels = _config.GetSection("AllowedChannels").Get<List<ulong>>();
             
             var userActions = _config.GetSection("UserActions").Get<List<UserAction>>();
-
-            _timeService.InitializeAsync();
         }
 
 
@@ -194,19 +192,18 @@ namespace DigitArenaBot.Services
          }
 
          [SlashCommand("toggle-tomokoposting", "togluju tomokoposting")]
-         private async Task ToggleTomokoPosting()
+         private async Task ToggleTomokoPosting(string date)
          {
-             ulong id = Context.Interaction.User.Id;
-             ulong channelId = Context.Interaction.Channel.Id;
-             if (id != 256114627794960384)
+             DateTime time;
+             var parsedDate = DateTime.TryParse(date, out time);
+
+             if (!parsedDate)
              {
-                 await RespondAsync("Může jen lajtkek :-)");
+                 await RespondAsync($"Zadej UTC datum blbečku.");
                  return;
              }
-             
-             TimeService.isTomokopostingActivated = !TimeService.isTomokopostingActivated;
 
-             await RespondAsync($"{Context.User.Username} togloval tomokoposting na {TimeService.isTomokopostingActivated}");
+             await _timeService.RegisterEvent(time);
          }
     }
 }

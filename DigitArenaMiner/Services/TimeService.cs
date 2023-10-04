@@ -17,7 +17,9 @@ namespace DigitArenaBot.Services
         private readonly IServiceProvider _services;
 
         public static bool isTomokopostingActivated = false;
-        public System.Threading.Timer _timer;
+        public System.Threading.Timer? _timer;
+
+        private List<DateTime> _eventTimes;
 
         public TimeService(DiscordSocketClient client, InteractionService commands, IServiceProvider services)
         {
@@ -28,18 +30,34 @@ namespace DigitArenaBot.Services
             Console.WriteLine("init end");
         }
 
-        public async Task InitializeAsync()
+        public async Task RegisterEvent(DateTime time)
         {
             var startTimeSpan = TimeSpan.Zero;
             var periodTimeSpan = TimeSpan.FromMinutes(1);
 
-            Console.WriteLine("start timer");
+            Console.WriteLine($"REGISTERED {time.ToUniversalTime()} at {DateTime.Now.ToUniversalTime()}");
+            _eventTimes.Add(time);
+            
+            if (_timer != null) return;
+            
             _timer = new System.Threading.Timer(async (e) =>
             {
-                Console.WriteLine($"{DateTime.Now} TICK");
-                if (isTomokopostingActivated)
+                Console.WriteLine($"{DateTime.Now} TICK EVENTS:{_eventTimes.Count}");
+                
+                var events = _eventTimes.Where(x => x <= DateTime.Now);
+                _eventTimes = _eventTimes.Where(x => x > DateTime.Now).ToList();
+
+                foreach (var UPPER in events)
                 {
                     await PostTomoko();
+                }
+
+                if (_eventTimes.Count == 0)
+                {
+                    var timer = _timer;
+                    _timer = null;
+                    if(timer != null)
+                    await timer.DisposeAsync();
                 }
             }, null, startTimeSpan, periodTimeSpan);
         }
