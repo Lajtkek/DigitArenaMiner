@@ -96,14 +96,9 @@ public class TrackerCommands : InteractionModuleBase<SocketInteractionContext>
         
         foreach (var cumRecord in records)
         {
-            embed.Fields.Add(new EmbedFieldBuilder()
-            {
-                Name = $"@<{cumRecord.Id}>",
-                Value = cumRecord.Count,
-                IsInline = false
-            });
+            embed.Description += $"@<{cumRecord.Id}> - {cumRecord.Count} \n";
         }
 
-        await RespondAsync(null, embed: embed.Build());
+        await RespondAsync(null, embed: embed.Build(), allowedMentions: AllowedMentions.None);
     }
 }
