@@ -10,11 +10,11 @@ public class TrackerCommands : InteractionModuleBase<SocketInteractionContext>
     private readonly DiscordSocketClient _client;
     private readonly InteractionService _commands;
     private readonly IServiceProvider _services;
-    private readonly PersistanceService _persistanceService;
+    private readonly IPersistanceService _persistanceService;
     private readonly List<ulong> _allowedChannels;
     private readonly IConfigurationRoot _config;
 
-    public TrackerCommands(DiscordSocketClient client, InteractionService commands, IServiceProvider services, PersistanceService persistanceService, IConfigurationRoot config)
+    public TrackerCommands(DiscordSocketClient client, InteractionService commands, IServiceProvider services, IPersistanceService persistanceService, IConfigurationRoot config)
     {
         _client = client;
         _commands = commands;
