@@ -60,7 +60,7 @@ public class TrackerCommands : InteractionModuleBase<SocketInteractionContext>
             return;
         }
 
-        var records = await _persistanceService.GetCumRecords(user.Id);
+        var records = await _persistanceService.GetCumRecords(user.Id, 10);
 
         var embed = new EmbedBuilder();
 
@@ -88,7 +88,7 @@ public class TrackerCommands : InteractionModuleBase<SocketInteractionContext>
             return;
         }
 
-        var records = await _persistanceService.GetCumLeaderboard();
+        var records = await _persistanceService.GetCumLeaderboard(10);
 
         var embed = new EmbedBuilder();
 
