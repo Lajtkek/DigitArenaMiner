@@ -96,7 +96,7 @@ public class TrackerCommands : InteractionModuleBase<SocketInteractionContext>
         
         foreach (var cumRecord in records)
         {
-            embed.Description += $"@<{cumRecord.Id}> - {cumRecord.Count} \n";
+            embed.Description += $"<@{cumRecord.Id}> - {cumRecord.Count} \n";
         }
 
         await RespondAsync(null, embed: embed.Build(), allowedMentions: AllowedMentions.None);
