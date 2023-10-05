@@ -164,20 +164,20 @@ public class PersistanceService : IPersistanceService
 
     public async Task<List<CumRecord>> GetCumRecords(ulong userId, int size = 10)
     {
-        return await _context.CumRecords.Where(x => x.UserId == userId).OrderByDescending(x => x.Timestamp).Take(size).ToListAsync();
+        return await _context.CumRecords.Where(x => x.UserId == userId).OrderBy(x => x.Timestamp).Take(size).ToListAsync();
     }
 
-    public async Task<List<LeaderboardItem>> GetCumLeaderboard(int size = 10)
+    public async Task<List<LeaderboardItem>> GetCumLeaderboard(int size)
     {
-        var a = await _context.UserActionCounts
+        var a = await _context.CumRecords
             .GroupBy(x => x.UserId)
             .Select(g => new
             {
                 UserId = g.Key,
-                TotalCount = g.Sum(x => x.Count)
+                TotalCount = g.Count()
             })
             .OrderByDescending(x => x.TotalCount)
-            .Take(size)
+            .Take(10)
             .ToListAsync();
         
         return a.Select(x => new LeaderboardItem()
