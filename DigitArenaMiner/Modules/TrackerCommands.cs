@@ -79,7 +79,7 @@ public class TrackerCommands : InteractionModuleBase<SocketInteractionContext>
         await RespondAsync(null, embed: embed.Build());
     }
     
-    [SlashCommand("cumomerboard", "yyy")]
+    [SlashCommand("coomerboard", "yyy")]
     public async Task CoomerLeaderboard()
     {
         if(!_allowedChannels.Contains(Context.Channel.Id))
