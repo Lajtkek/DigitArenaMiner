@@ -54,6 +54,7 @@ var services = builder.Services
     .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
     .AddSingleton<CommandHandler>()
     .AddSingleton<MessageReactionService>()
+    .AddSingleton<TimeService>()
     .AddSingleton<DynamicCommandService>()
     .BuildServiceProvider();
 
