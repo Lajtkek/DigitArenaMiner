@@ -157,6 +157,7 @@ namespace DigitArenaBot.Services
             // Add an image to the embed
             var url = "https://gallery.lajtkep.dev/resources/2daa01d812c8a4665fdd58564574adbb510b8123a69b2dc8b114adc811deb88e.mp4"; // Replace with the URL of the image you want to include
 
+            await DeferAsync();
             using (var client = new System.Net.Http.HttpClient())
             {
                 var videoBytes = await client.GetByteArrayAsync(url);
