@@ -29,11 +29,12 @@ namespace DigitArenaBot.Services
         private readonly List<MineableEmote> _mineableEmotes;
         private readonly MessageReactionService _messageReactionService;
         private readonly TimeService _timeService;
+        private readonly VideoDownloadService _videoDownloadService;
 
         private List<ulong> _allowedChannels;
 
         // constructor injection is also a valid way to access the dependecies
-        public ExampleCommands (CommandHandler handler, IConfigurationRoot config, DiscordSocketClient client, IPersistanceService persistanceService, MessageReactionService messageReactionService, TimeService timeService)
+        public ExampleCommands (CommandHandler handler, IConfigurationRoot config, DiscordSocketClient client, IPersistanceService persistanceService, MessageReactionService messageReactionService, TimeService timeService, VideoDownloadService videoDownloadService)
         {
             _handler = handler;
             _config = config;
@@ -42,7 +43,8 @@ namespace DigitArenaBot.Services
             _mineableEmotes = _config.GetSection("MineableEmotes").Get<List<MineableEmote>>();
             _messageReactionService = messageReactionService;
             _timeService = timeService;
-            
+            _videoDownloadService = videoDownloadService;
+
             _allowedChannels = _config.GetSection("AllowedChannels").Get<List<ulong>>();
             
             var userActions = _config.GetSection("UserActions").Get<List<UserAction>>();
@@ -252,37 +254,12 @@ namespace DigitArenaBot.Services
              }
 
              await DeferAsync();
+
+             var videoUrl = await _videoDownloadService.DownloadVideo(url);
+             using var videStream = await _videoDownloadService.GetVideoStream(videoUrl);
+             await FollowupWithFileAsync(videStream, "video.mp4", "Tady máš video kámo!"); 
              
-
-
-             string rootPath = AppDomain.CurrentDomain.BaseDirectory;;
-             string downloadPath = Path.Combine(rootPath, "Downloads");
-
-             Directory.CreateDirectory(downloadPath);
-             
-             string videoUrl = url; // Replace with the YouTube video URL
-
-             var youtubeClient = new YoutubeClient();
-             var videoInfo = await youtubeClient.Videos.GetAsync(videoUrl);
-
-             string videoTitle = videoInfo.Title;
-             string videoId = videoInfo.Id;
-             string savePath = Path.Combine(downloadPath, $"{videoTitle}_{videoId}.mp4");
-
-             var streamInfoSet = await youtubeClient.Videos.Streams.GetManifestAsync(videoUrl);
-             var streamInfo = streamInfoSet.GetMuxedStreams().GetWithHighestVideoQuality();
-
-             if (streamInfo != null)
-             {
-                 Console.WriteLine($"Downloading '{videoTitle}'...");
-                 await youtubeClient.Videos.Streams.DownloadAsync(streamInfo, savePath);
-                 Console.WriteLine($"Video '{videoTitle}' downloaded to '{savePath}'.");
-             }
-
-             var fileStream = File.ReadAllBytes(savePath);
-             await FollowupWithFileAsync(new MemoryStream(fileStream), "video.mp4", "Tady máš video kámo!"); 
-             
-             File.Delete(savePath);
+             File.Delete(videoUrl);
          }
     }
 }

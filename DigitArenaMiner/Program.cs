@@ -56,6 +56,7 @@ var services = builder.Services
     .AddSingleton<MessageReactionService>()
     .AddSingleton<TimeService>()
     .AddSingleton<DynamicCommandService>()
+    .AddSingleton<VideoDownloadService>()
     .BuildServiceProvider();
 
 
