@@ -12,6 +12,8 @@ using Discord.Net;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Npgsql.Replication.TestDecoding;
+using YoutubeExplode;
+using YoutubeExplode.Videos.Streams;
 
 namespace DigitArenaBot.Services
 {
@@ -228,6 +230,59 @@ namespace DigitArenaBot.Services
 
              await _timeService.RegisterEvent(time);
              await RespondAsync($"Registrován event na {time.ToUniversalTime()}");
+         }
+         
+         [SlashCommand("repost", "stáhne a repostne video")]
+         public async Task RepostVideo(string url)
+         {
+             ulong id = Context.Interaction.User.Id;
+             ulong channelId = Context.Interaction.Channel.Id;
+             if (id != 256114627794960384)
+             {
+                 await RespondAsync("Může jen lajtkek :-)");
+                 return;
+             }
+        
+             var channel = await _client.GetChannelAsync(channelId) as ISocketMessageChannel;
+        
+             if (channel == null)
+             {
+                 await RespondAsync("Channel neexistuje");
+                 return;
+             }
+
+             await DeferAsync();
+             
+
+
+             string rootPath = AppDomain.CurrentDomain.BaseDirectory;;
+             string downloadPath = Path.Combine(rootPath, "Downloads");
+
+             Directory.CreateDirectory(downloadPath);
+             
+             string videoUrl = url; // Replace with the YouTube video URL
+
+             var youtubeClient = new YoutubeClient();
+             var videoInfo = await youtubeClient.Videos.GetAsync(videoUrl);
+
+             string videoTitle = videoInfo.Title;
+             string videoId = videoInfo.Id;
+             string savePath = Path.Combine(downloadPath, $"{videoTitle}_{videoId}.mp4");
+
+             var streamInfoSet = await youtubeClient.Videos.Streams.GetManifestAsync(videoUrl);
+             var streamInfo = streamInfoSet.GetMuxedStreams().GetWithHighestVideoQuality();
+
+             if (streamInfo != null)
+             {
+                 Console.WriteLine($"Downloading '{videoTitle}'...");
+                 await youtubeClient.Videos.Streams.DownloadAsync(streamInfo, savePath);
+                 Console.WriteLine($"Video '{videoTitle}' downloaded to '{savePath}'.");
+             }
+
+             var fileStream = File.ReadAllBytes(savePath);
+             await FollowupWithFileAsync(new MemoryStream(fileStream), "video.mp4", "Tady máš video kámo!"); 
+             
+             File.Delete(savePath);
          }
     }
 }
