@@ -119,14 +119,14 @@ public class MessageReactionService
                     }
                 }
 
-            await chnl.SendFilesAsync(att, embed: embedBuilder.Build(), stickers: message.Stickers as ISticker[]);
+            await chnl.SendFilesAsync(att, embed: embedBuilder.Build(), stickers: message.Stickers as ISticker[], allowedMentions: AllowedMentions.None);
 
                 foreach (var stream in streamList)
                 {
                     await stream.DisposeAsync();
                 }
             }else
-                await chnl.SendMessageAsync(messageData, embed: embedBuilder.Build(), stickers: message.Stickers as ISticker[]);
+                await chnl.SendMessageAsync(messageData, embed: embedBuilder.Build(), stickers: message.Stickers as ISticker[], allowedMentions: AllowedMentions.None);
             
             await _persistanceService.ArchiveMessage(messageId);
         }

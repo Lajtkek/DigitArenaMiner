@@ -26,11 +26,12 @@ namespace DigitArenaBot.Services
         private IPersistanceService _persistanceService;
         private readonly List<MineableEmote> _mineableEmotes;
         private readonly MessageReactionService _messageReactionService;
+        private readonly TimeService _timeService;
 
         private List<ulong> _allowedChannels;
 
         // constructor injection is also a valid way to access the dependecies
-        public ExampleCommands (CommandHandler handler, IConfigurationRoot config, DiscordSocketClient client, IPersistanceService persistanceService, MessageReactionService messageReactionService)
+        public ExampleCommands (CommandHandler handler, IConfigurationRoot config, DiscordSocketClient client, IPersistanceService persistanceService, MessageReactionService messageReactionService, TimeService timeService)
         {
             _handler = handler;
             _config = config;
@@ -38,12 +39,11 @@ namespace DigitArenaBot.Services
             _client = client;
             _mineableEmotes = _config.GetSection("MineableEmotes").Get<List<MineableEmote>>();
             _messageReactionService = messageReactionService;
+            _timeService = timeService;
             
             _allowedChannels = _config.GetSection("AllowedChannels").Get<List<ulong>>();
             
             var userActions = _config.GetSection("UserActions").Get<List<UserAction>>();
-
-
         }
 
 
@@ -211,6 +211,22 @@ namespace DigitArenaBot.Services
                  if(index == limit)  await RecursiveMessageHandler(channel, msg);
                  index++;
              }
+         }
+
+         [SlashCommand("toggle-tomokoposting", "togluju tomokoposting")]
+         private async Task ToggleTomokoPosting(string date)
+         {
+             DateTime time;
+             var parsedDate = DateTime.TryParse(date, out time);
+
+             if (!parsedDate)
+             {
+                 await RespondAsync($"Zadej UTC datum blbečku.");
+                 return;
+             }
+
+             await _timeService.RegisterEvent(time);
+             await RespondAsync($"Registrován event na {time.ToUniversalTime()}");
          }
     }
 }

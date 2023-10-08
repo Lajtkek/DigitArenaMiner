@@ -19,6 +19,10 @@ public interface IPersistanceService
     public Task UpdateUserActionCount(string actionName, ulong userId);
     public Task<UserActionCount?> GetUserActionCount(string actionName,ulong userId);
     public Task<List<LeaderboardItem>> GetTopUserActionCount(string actionName);
+
+    public Task<bool> SaveCumRecord(ulong userId, string description);
+    public Task<List<CumRecord>> GetCumRecords(ulong userId, int size);
+    public Task<List<LeaderboardItem>> GetCumLeaderboard(int size);
 }
 
 public class PersistanceService : IPersistanceService
@@ -131,6 +135,46 @@ public class PersistanceService : IPersistanceService
             {
                 UserId = g.Key,
                 TotalCount = g.Sum(x => x.Count)
+            })
+            .OrderByDescending(x => x.TotalCount)
+            .Take(10)
+            .ToListAsync();
+        
+        return a.Select(x => new LeaderboardItem()
+        {
+            Count = x.TotalCount,
+            Id = x.UserId,
+        }).ToList();
+    }
+
+    public async Task<bool> SaveCumRecord(ulong userId, string description)
+    {
+        var record = new CumRecord()
+        {
+            UserId = userId,
+            Description = description
+        };
+
+        await _context.CumRecords.AddAsync(record);
+
+        await _context.SaveChangesAsync();
+
+        return true;
+    }
+
+    public async Task<List<CumRecord>> GetCumRecords(ulong userId, int size = 10)
+    {
+        return await _context.CumRecords.Where(x => x.UserId == userId).OrderBy(x => x.Timestamp).Take(size).ToListAsync();
+    }
+
+    public async Task<List<LeaderboardItem>> GetCumLeaderboard(int size)
+    {
+        var a = await _context.CumRecords
+            .GroupBy(x => x.UserId)
+            .Select(g => new
+            {
+                UserId = g.Key,
+                TotalCount = g.Count()
             })
             .OrderByDescending(x => x.TotalCount)
             .Take(10)
