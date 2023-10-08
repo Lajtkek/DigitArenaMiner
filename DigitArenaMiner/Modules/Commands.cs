@@ -162,7 +162,7 @@ namespace DigitArenaBot.Services
             {
                 var videoBytes = await client.GetByteArrayAsync(url);
 
-                await RespondWithFileAsync(new MemoryStream(videoBytes), "video.mp4", "Good morning urinals!");
+                await FollowupWithFileAsync(new MemoryStream(videoBytes), "video.mp4", "Good morning urinals!");
             }
         }
         
