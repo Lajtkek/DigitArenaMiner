@@ -143,6 +143,28 @@ namespace DigitArenaBot.Services
                 $"", new []{ embed });
         }
         
+        [SlashCommand("good-morning-urinals", "idk")]
+        public async Task GoodMorning2()
+        {
+            string username = Context.Interaction.User.Username;
+
+            var embedBuilder = new EmbedBuilder
+            {
+                Title = $"Good morning urinals.",
+                Color = Color.Default, // You can set the color of the embed here,
+            };
+
+            // Add an image to the embed
+            var url = "https://gallery.lajtkep.dev/resources/2daa01d812c8a4665fdd58564574adbb510b8123a69b2dc8b114adc811deb88e.mp4"; // Replace with the URL of the image you want to include
+
+            using (var client = new System.Net.Http.HttpClient())
+            {
+                var videoBytes = await client.GetByteArrayAsync(url);
+
+                await RespondWithFileAsync(new MemoryStream(videoBytes), "video.mp4", "Good morning urinals!");
+            }
+        }
+        
         [SlashCommand("index-channel", "Projede všechny zrávy a uloží emotes")]
          public async Task IndexChannel()
          {
