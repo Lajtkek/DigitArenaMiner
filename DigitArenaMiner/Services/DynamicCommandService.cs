@@ -12,11 +12,13 @@ public class DynamicCommandService
     private readonly DiscordSocketClient _client;
     private readonly List<UserAction> _userActions;
     private readonly List<Guru> _gurus;
+    private readonly IPersistanceService _persistanceService;
     
-    public DynamicCommandService(IConfigurationRoot config, DiscordSocketClient client)
+    public DynamicCommandService(IConfigurationRoot config, DiscordSocketClient client, IPersistanceService persistanceService)
     {
         _config = config;
         _client = client;
+        _persistanceService = persistanceService;
         _userActions = _config.GetSection("UserActions").Get<List<UserAction>>();
         _gurus = _config.GetSection("Gurus").Get<List<Guru>>();
     }
@@ -28,6 +30,8 @@ public class DynamicCommandService
             await RegisterUserAction(userAction);
         }
 
+        await RegisterUserActionLeaderboard();
+            
         await RegisterGurus();
         
         _client.InteractionCreated += async (interaction) =>
@@ -40,6 +44,9 @@ public class DynamicCommandService
                 }else if (slashCommand.CommandName == "ask")
                 {
                     await HandleAskCommand(slashCommand);
+                }else if (slashCommand.CommandName == "useraction-leaderboard")
+                {
+                    await HandleUserActionLeaderboard(slashCommand);
                 }
             }
         };
@@ -88,6 +95,34 @@ public class DynamicCommandService
                 .WithType(ApplicationCommandOptionType.User)
             );
             
+        try
+        {
+            await _client.Rest.CreateGlobalCommand(guildCommand.Build());
+        }
+        catch(ApplicationCommandException exception)
+        {
+            Console.WriteLine(exception.Message);
+        }
+    }
+    
+    public async Task RegisterUserActionLeaderboard()
+    {
+        var options = new SlashCommandOptionBuilder()
+            .WithName("action-name")
+            .WithDescription("User for interaction")
+            .WithRequired(true)
+            .WithType(ApplicationCommandOptionType.String);
+            
+        foreach (var userAction in _userActions)
+        {
+            options.AddChoice(userAction.Name, userAction.Name);
+        }
+            
+        var guildCommand = new SlashCommandBuilder()
+            .WithName("useraction-leaderboard")
+            .WithDescription("zobrazi top lidi co dostali akci")
+            .AddOption(options);
+        
         try
         {
             await _client.Rest.CreateGlobalCommand(guildCommand.Build());
@@ -166,5 +201,17 @@ public class DynamicCommandService
         embed.ImageUrl = userAction.ImageUrl;
              
         await context.RespondAsync(msg, embeds: new []{embed.Build()});
+    }
+    
+    private async Task HandleUserActionLeaderboard(SocketSlashCommand context)
+    {
+        var actionName = context.Data.Options.First().Value as string;
+
+        var result = await _persistanceService.GetTopUserActionCount(actionName);
+        
+        var embed = new EmbedBuilder();
+        embed.Title = $"{actionName} leaderboard:";
+        embed.Description = string.Join("\n", result.Select(x => $"<@{x.Id}> má {x.Count}"));
+        await context.RespondAsync("", embeds: new []{embed.Build()});
     }
 }
