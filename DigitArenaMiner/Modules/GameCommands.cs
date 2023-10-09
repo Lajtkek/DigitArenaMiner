@@ -71,12 +71,7 @@ namespace DigitArenaBot.Services
 
                 if (component.Data.CustomId == "Tomoko")
                 {
-                    
                     await component.RespondAsync("", embed: builder.Build());
-                }
-                else
-                {
-                    await component.RespondAsync($"{component.User.Username} vyber Tomoko.");
                 }
                
             };
