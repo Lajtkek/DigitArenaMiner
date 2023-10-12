@@ -49,6 +49,7 @@ var connectionString = config["ConnectionStrings:Db"];
 
 var services = builder.Services
     .AddSingleton(socketClient)
+    .AddSingleton<HelperService>()
     .AddSingleton(config).AddDbContext<DefaultDatabaseContext>(options => { }, ServiceLifetime.Singleton)
     .AddSingleton<IPersistanceService, PersistanceService>()
     .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))

@@ -30,11 +30,13 @@ namespace DigitArenaBot.Services
         private readonly MessageReactionService _messageReactionService;
         private readonly TimeService _timeService;
         private readonly VideoDownloadService _videoDownloadService;
+        private readonly HelperService _helperService;
+        
 
         private List<ulong> _allowedChannels;
 
         // constructor injection is also a valid way to access the dependecies
-        public ExampleCommands (CommandHandler handler, IConfigurationRoot config, DiscordSocketClient client, IPersistanceService persistanceService, MessageReactionService messageReactionService, TimeService timeService, VideoDownloadService videoDownloadService)
+        public ExampleCommands (CommandHandler handler, IConfigurationRoot config, DiscordSocketClient client, IPersistanceService persistanceService, MessageReactionService messageReactionService, TimeService timeService, VideoDownloadService videoDownloadService, HelperService helperService)
         {
             _handler = handler;
             _config = config;
@@ -44,6 +46,7 @@ namespace DigitArenaBot.Services
             _messageReactionService = messageReactionService;
             _timeService = timeService;
             _videoDownloadService = videoDownloadService;
+            _helperService = helperService;
 
             _allowedChannels = _config.GetSection("AllowedChannels").Get<List<ulong>>();
             
@@ -237,19 +240,9 @@ namespace DigitArenaBot.Services
          [SlashCommand("repost", "stáhne a repostne video")]
          public async Task RepostVideo(string url)
          {
-             ulong id = Context.Interaction.User.Id;
-             ulong channelId = Context.Interaction.Channel.Id;
-             if (id != 256114627794960384)
+             if(!await _helperService.IsUserPrivileged(Context.User))
              {
-                 await RespondAsync("Může jen lajtkek :-)");
-                 return;
-             }
-        
-             var channel = await _client.GetChannelAsync(channelId) as ISocketMessageChannel;
-        
-             if (channel == null)
-             {
-                 await RespondAsync("Channel neexistuje");
+                 await RespondAsync("Tento příkaz je pouze pro privilegované uživatele.");
                  return;
              }
 
@@ -257,8 +250,9 @@ namespace DigitArenaBot.Services
 
              var videoUrl = await _videoDownloadService.DownloadVideo(url);
              using var videStream = await _videoDownloadService.GetVideoStream(videoUrl);
-             await FollowupWithFileAsync(videStream, "video.mp4", "Tady máš video kámo!"); 
+             await FollowupWithFileAsync(videStream, "video.mp4", "Tady máš video kámo!");
              
+             // delete video anyways
              File.Delete(videoUrl);
          }
     }
