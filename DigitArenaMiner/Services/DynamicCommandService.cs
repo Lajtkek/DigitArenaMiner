@@ -273,7 +273,7 @@ public class DynamicCommandService
 
         var embed = new EmbedBuilder();
         embed.ImageUrl = userAction.ImageUrl;
-        await _persistanceService.UpdateUserActionCount(userAction.Name, id);
+        await _persistanceService.UpdateUserActionCount(userAction.Name, targetedUser.Id);
              
         await context.RespondAsync(msg, embeds: new []{embed.Build()});
     }
