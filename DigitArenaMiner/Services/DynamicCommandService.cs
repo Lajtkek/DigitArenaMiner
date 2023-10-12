@@ -44,6 +44,9 @@ public class DynamicCommandService
                 }else if (slashCommand.CommandName == "ask")
                 {
                     await HandleAskCommand(slashCommand);
+                }else if (slashCommand.CommandName == "choose")
+                {
+                    await HandleChooseCommand(slashCommand);
                 }else if (slashCommand.CommandName == "useraction-leaderboard")
                 {
                     await HandleUserActionLeaderboard(slashCommand);
@@ -73,9 +76,27 @@ public class DynamicCommandService
                 .WithRequired(true)
                 .WithDescription("Question to ask").WithType(ApplicationCommandOptionType.String));
         
+        var chooseGuruCommand = new SlashCommandBuilder()
+            .WithName("choose")
+            .WithDescription("Nech si poradit co vybrat.")
+            .AddOption(guruPicker).AddOption(new SlashCommandOptionBuilder()
+                .WithName("question")
+                .WithRequired(true)
+                .WithDescription("Question to ask").WithType(ApplicationCommandOptionType.String));
+
+        
+        for (int i = 1; i <= 5; i++)
+        {
+            chooseGuruCommand.AddOption(new SlashCommandOptionBuilder()
+                .WithName($"option_{i}")
+                .WithRequired(i <= 2)
+                .WithDescription("option to choose").WithType(ApplicationCommandOptionType.String));
+        }
+        
         try
         {
             await _client.Rest.CreateGlobalCommand(guildCommand.Build());
+            await _client.Rest.CreateGlobalCommand(chooseGuruCommand.Build());
         }
         catch(ApplicationCommandException exception)
         {
@@ -172,6 +193,59 @@ public class DynamicCommandService
             {
                 Name = "Odpověď:",
                 Value = msg
+            }
+        };
+        
+             
+        await context.RespondAsync(null, embeds: new []{embed.Build()});
+    }
+    
+    private async Task HandleChooseCommand(SocketSlashCommand context)
+    {
+        var guruName = context.Data.Options.First().Value as string;
+        var question = context.Data.Options.Skip(1).First().Value as string;
+        
+        var options = context.Data.Options.Skip(2).ToList().Select(x => x.Value as string).ToList();
+        
+        var guru = _gurus.First(x => x.Name == guruName);
+
+        ulong id = context.User.Id;
+        ulong channelId = context.Channel.Id;
+       
+        var channel = await _client.GetChannelAsync(channelId) as ISocketMessageChannel;
+        
+        if (channel == null)
+        {
+            await context.RespondAsync("Channel neexistuje");
+            return;
+        }
+
+        var answerIndex = Random.Shared.Next(0, options.Count - 1);
+        var answer = options[answerIndex];
+        var msg = guru.Message.Replace("{result}", $"**{answer}**");
+
+        var embed = new EmbedBuilder();
+        embed.ImageUrl = guru.ImageUrl;
+
+        embed.Title = $"{context.User.Username} se zeptal {guruName}, co má vybrat.";
+
+
+        embed.Fields = new List<EmbedFieldBuilder>()
+        {
+            new EmbedFieldBuilder()
+            {
+                Name = "Otázka:",
+                Value = question
+            },
+            new EmbedFieldBuilder()
+            {
+                Name = "Možnosti:",
+                Value = string.Join(",", options)
+            },
+            new EmbedFieldBuilder()
+            {
+                Name = guru.MessageChoose,
+                Value = $"**{answer}**"
             }
         };
         

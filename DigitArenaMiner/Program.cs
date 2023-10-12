@@ -100,6 +100,7 @@ Task LogAsync(LogMessage log)
 
 async Task ReadyAsync()
 {
+   
     if (IsDebug())
     {
         // this is where you put the id of the test discord guild

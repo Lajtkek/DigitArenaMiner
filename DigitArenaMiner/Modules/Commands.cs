@@ -221,21 +221,21 @@ namespace DigitArenaBot.Services
              }
          }
 
-         [SlashCommand("toggle-tomokoposting", "togluju tomokoposting")]
-         private async Task ToggleTomokoPosting(string date)
-         {
-             DateTime time;
-             var parsedDate = DateTime.TryParse(date, out time);
-
-             if (!parsedDate)
-             {
-                 await RespondAsync($"Zadej UTC datum blbečku.");
-                 return;
-             }
-
-             await _timeService.RegisterEvent(time);
-             await RespondAsync($"Registrován event na {time.ToUniversalTime()}");
-         }
+         // [SlashCommand("toggle-tomokoposting", "togluju tomokoposting")]
+         // private async Task ToggleTomokoPosting(string date)
+         // {
+         //     DateTime time;
+         //     var parsedDate = DateTime.TryParse(date, out time);
+         //
+         //     if (!parsedDate)
+         //     {
+         //         await RespondAsync($"Zadej UTC datum blbečku.");
+         //         return;
+         //     }
+         //
+         //     await _timeService.RegisterEvent(time);
+         //     await RespondAsync($"Registrován event na {time.ToUniversalTime()}");
+         // }
          
          [SlashCommand("repost", "stáhne a repostne video")]
          public async Task RepostVideo(string url)
