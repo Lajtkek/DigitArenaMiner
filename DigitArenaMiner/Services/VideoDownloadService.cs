@@ -100,7 +100,7 @@ namespace DigitArenaBot.Services
 
         public Task DeleteVideo(string path)
         {
-            //File.Delete(path);
+            File.Delete(path);
             return Task.CompletedTask;
         }
 
