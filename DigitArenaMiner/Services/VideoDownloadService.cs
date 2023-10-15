@@ -54,8 +54,6 @@ namespace DigitArenaBot.Services
         {
             await YoutubeDLSharp.Utils.DownloadYtDlp(_youtubeDdpPath);
             await YoutubeDLSharp.Utils.DownloadFFmpeg(_FFmpegPath);
-            Console.WriteLine("DEBUG");
-            Console.WriteLine(string.Join(",", Directory.GetFiles(_youtubeDdpPath)));
         }
 
         public async Task<string> DownloadVideo(string url, ExampleCommands.VideoFormat format)
@@ -110,8 +108,8 @@ namespace DigitArenaBot.Services
         protected YoutubeDL CreateYoutubeDl()
         {
             var ytdl = new YoutubeDL();
-            ytdl.YoutubeDLPath = Path.Combine(_youtubeDdpPath, "yt-dlp.exe");
-            ytdl.FFmpegPath = Path.Combine(_FFmpegPath, "ffmpeg.exe");
+            ytdl.YoutubeDLPath = Path.Combine(_youtubeDdpPath, Directory.GetFiles(_youtubeDdpPath).First());
+            ytdl.FFmpegPath = Path.Combine(_FFmpegPath, Directory.GetFiles(_FFmpegPath).First());
             return ytdl;
         }
     }
