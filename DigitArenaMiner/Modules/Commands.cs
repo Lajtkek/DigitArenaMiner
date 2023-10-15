@@ -237,23 +237,43 @@ namespace DigitArenaBot.Services
          //     await RespondAsync($"Registrován event na {time.ToUniversalTime()}");
          // }
          
+         public enum VideoFormat {
+             Best,
+             Worst
+         }
+         
          [SlashCommand("repost", "stáhne a repostne video")]
-         public async Task RepostVideo(string url)
+         public async Task RepostVideo(string url, VideoFormat format = VideoFormat.Best)
          {
              if(!await _helperService.IsUserPrivileged(Context.User))
              {
-                 await RespondAsync("Tento příkaz je pouze pro privilegované uživatele.");
+                 await RespondAsync("**Tento příkaz je pouze pro privilegované uživatele.**");
                  return;
              }
 
              await DeferAsync();
 
-             var videoUrl = await _videoDownloadService.DownloadVideo(url);
-             using var videStream = await _videoDownloadService.GetVideoStream(videoUrl);
-             await FollowupWithFileAsync(videStream, "video.mp4", "Tady máš video kámo!");
-             
-             // delete video anyways
-             File.Delete(videoUrl);
+             try
+             {
+                 var videoUrl = await _videoDownloadService.DownloadVideo(url, format);
+                 using var videStream = await _videoDownloadService.GetVideoStream(videoUrl);
+                 
+                 try
+                 {
+                     await FollowupWithFileAsync(videStream, "video.mp4", $"**Tady máš video kámo!** \n Původní odkaz:<{url}>");
+                 }
+                 catch (Exception e)
+                 {
+                     await Context.Channel.SendMessageAsync($"Nastala výjimka při postování videa. ({e.Message})");
+                 }
+
+                 // delete video anyways
+                 await _videoDownloadService.DeleteVideo(videoUrl);
+             }
+             catch (Exception e)
+             {
+                 await FollowupAsync($"Nastala exception: {e.Message}");
+             }
          }
     }
 }

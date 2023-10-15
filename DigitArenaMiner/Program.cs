@@ -17,6 +17,7 @@ using DigitArenaBot;
 using DigitArenaBot.Classes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
+using YoutubeExplode.Videos;
 
 
 // setup our fields we assign later
@@ -67,6 +68,10 @@ _persistanceService = services.GetRequiredService<IPersistanceService>();
 _config = services.GetRequiredService<IConfigurationRoot>();
 _messageReactionService = services.GetRequiredService<MessageReactionService>();
 _dynamicCommandService = services.GetRequiredService<DynamicCommandService>();
+
+
+var _videoDownloadService = services.GetRequiredService<VideoDownloadService>();
+await _videoDownloadService.Init();
 
 _testGuildId = ulong.Parse(_config["TestGuildId"]);
 _mineableEmotes = _config.GetSection("MineableEmotes").Get<List<MineableEmote>>();
@@ -126,6 +131,8 @@ static bool IsDebug()
                 return false;
 #endif
 }
+
+
 
 builder.Build();
 await Task.Delay(Timeout.Infinite);

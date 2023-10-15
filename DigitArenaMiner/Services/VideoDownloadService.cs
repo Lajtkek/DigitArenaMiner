@@ -7,7 +7,10 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
+using YoutubeDLSharp;
+using YoutubeDLSharp.Options;
 using YoutubeExplode;
 using YoutubeExplode.Videos.Streams;
 
@@ -18,79 +21,50 @@ namespace DigitArenaBot.Services
         private readonly DiscordSocketClient _client;
         private readonly InteractionService _commands;
         private readonly IServiceProvider _services;
+        private readonly IConfigurationRoot _config;
 
         private readonly string _rootPath = AppDomain.CurrentDomain.BaseDirectory;
         private readonly string _downloadPath;
 
-        public VideoDownloadService(DiscordSocketClient client, InteractionService commands, IServiceProvider services)
+        private readonly string _youtubeDdpPath;
+        private readonly string _FFmpegPath;
+
+        private readonly float _maxVideoLengthSeconds;
+
+        public VideoDownloadService(DiscordSocketClient client, InteractionService commands, IServiceProvider services, IConfigurationRoot config)
         {
             _client = client;
             _commands = commands;
             _services = services;
+            _config = config;
             _downloadPath = Path.Combine(_rootPath, "Downloads");
             Directory.CreateDirectory(_downloadPath);
+
+            _youtubeDdpPath = Path.Combine(_downloadPath, "YTDLP");
+            _FFmpegPath = Path.Combine(_downloadPath, "FFMPEG");
+            
+            Directory.CreateDirectory(_youtubeDdpPath);
+            Directory.CreateDirectory(_FFmpegPath);
+            
+            _maxVideoLengthSeconds = _config.GetSection("MaxVideoDuration").Get<float>();
+
         }
 
-        public async Task<string> DownloadVideo(string url)
+        public async Task Init()
+        {
+            await YoutubeDLSharp.Utils.DownloadYtDlp(_youtubeDdpPath);
+            await YoutubeDLSharp.Utils.DownloadFFmpeg(_FFmpegPath);
+            Console.WriteLine("DEBUG");
+            Console.WriteLine(string.Join(",", Directory.GetFiles(_youtubeDdpPath)));
+        }
+
+        public async Task<string> DownloadVideo(string url, ExampleCommands.VideoFormat format)
         {
             var loweredUrl = url.ToLower();
 
-            if (loweredUrl.Contains("youtube.com"))
-            {
-                return await DownloadYoutubeVideo(url);
-            }else if (loweredUrl.Contains("instagram.com"))
-            {
-                return await DownloadInstagramVideo(url);
-            }
-
-            throw new Exception("Unknown URL");
-        }
-
-        private async Task<string> DownloadInstagramVideo(string url)
-        {
-            // https://www.instagram.com/reel/Cx8LPbPIFGo/?igshid=MzRlODBiNWFlZA== 
-            var urlChunks = url.Split("/");
-            var apiUrl =  string.Join("/",urlChunks.SkipLast(1).ToArray()) + "/?__a=1&__d=1";
- 
-            HttpClient httpClient = new HttpClient();
-            httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36");
-            HttpResponseMessage response = await httpClient.GetAsync(apiUrl);
+            var formatString = format == ExampleCommands.VideoFormat.Best ? "bestvideo+bestaudio/best" : "worstvideo+worstaudio/worst";
             
-            
-            if (response.IsSuccessStatusCode)
-            {
-                // Read the JSON data from the response
-                string json = await response.Content.ReadAsStringAsync();
-    
-                JObject jsonObject = JObject.Parse(json);
-                
-                string videoUrl = (string)jsonObject["graphql"]["shortcode_media"]["video_url"];
-                
-                
-                Console.WriteLine("Stahuju MP4 - " + videoUrl);
-                HttpResponseMessage videoResponse = await httpClient.GetAsync(videoUrl);
-                var filePath = Path.Combine(_downloadPath, "test.mp4");
-                if (videoResponse.IsSuccessStatusCode)
-                {
-                    using (Stream fileStream = await videoResponse.Content.ReadAsStreamAsync())
-                    {
-                        using (FileStream fs = new FileStream(filePath, FileMode.Create))
-                        {
-                            await fileStream.CopyToAsync(fs);
-                        }
-                    }
-
-                    Console.WriteLine("MP4 file downloaded successfully!");
-                    return filePath;
-                }
-            }
-            else
-            {
-                throw new Exception();
-            }
-            httpClient.Dispose();
-
-            throw new Exception();
+            return await DownloadVideoWithYtDl(url, formatString);
         }
 
         public Task<FileStream> GetVideoStream(string path)
@@ -100,30 +74,45 @@ namespace DigitArenaBot.Services
 
         public Task DeleteVideo(string path)
         {
-            File.Delete(path);
+            var dir = Path.GetDirectoryName(path);
+            Directory.Delete(dir, true);
             return Task.CompletedTask;
         }
 
-        protected async Task<string> DownloadYoutubeVideo(string videoUrl)
-        {            
-            var youtubeClient = new YoutubeClient();
-            var videoInfo = await youtubeClient.Videos.GetAsync(videoUrl);
+        protected async Task<string> DownloadVideoWithYtDl(string videoUrl, string format = "bestvideo+bestaudio/best")
+        {
+            var ytdl = CreateYoutubeDl();
+            var data = await ytdl.RunVideoDataFetch(videoUrl);
 
-            string videoTitle = videoInfo.Title;
-            string videoId = videoInfo.Id;
-            string savePath = Path.Combine(_downloadPath, $"{videoId}.mp4");
+            if (data.Data == null || data.Data.Duration == null) throw new Exception("Data o videu jsou null.");
 
-            var streamInfoSet = await youtubeClient.Videos.Streams.GetManifestAsync(videoUrl);
-            var streamInfo = streamInfoSet.GetMuxedStreams().GetWithHighestVideoQuality();
-
-            if (streamInfo != null)
+            var mexVideoDuration = format == "bestvideo+bestaudio/best"
+                ? _maxVideoLengthSeconds
+                : _maxVideoLengthSeconds * 6;
+            
+            
+            Console.WriteLine($"Délka {data.Data.Duration} - {mexVideoDuration}");
+            if (data.Data.Duration.Value > mexVideoDuration)
             {
-                Console.WriteLine($"Downloading '{videoTitle}'...");
-                await youtubeClient.Videos.Streams.DownloadAsync(streamInfo, savePath);
-                Console.WriteLine($"Video '{videoTitle}' downloaded to '{savePath}'.");
+                throw new Exception($"Video (délky {data.Data.Duration}s) je delší než povolená délka (Best-{_maxVideoLengthSeconds}s; Worst-{mexVideoDuration}s)");
             }
 
-            return savePath;
+            ytdl.OutputFolder = Path.Combine(_downloadPath, data.Data.ID);
+
+            var res = await ytdl.RunVideoDownload(videoUrl, format, mergeFormat: DownloadMergeFormat.Mp4, overrideOptions: new OptionSet()
+            {
+                PostprocessorArgs = "ffmpeg:-vcodec h264_nvenc"
+            });
+
+            return res.Data;
+        }
+        
+        protected YoutubeDL CreateYoutubeDl()
+        {
+            var ytdl = new YoutubeDL();
+            ytdl.YoutubeDLPath = Path.Combine(_youtubeDdpPath, "yt-dlp.exe");
+            ytdl.FFmpegPath = Path.Combine(_FFmpegPath, "ffmpeg.exe");
+            return ytdl;
         }
     }
 }
