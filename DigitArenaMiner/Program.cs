@@ -1,17 +1,9 @@
-﻿﻿using System;
-using System.Collections.Generic;
-using Discord;
-using Discord.Net;
-using Discord.Commands;
+﻿using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using DigitArenaBot.Services;
-using System.Configuration;
-using System.Linq;
-using System.Threading;
 using DigitArenaBot.Classes;
 
 namespace DigitArenaBot
@@ -166,6 +158,7 @@ namespace DigitArenaBot
             //todoAdd binder
             var config = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json")
+                .AddEnvironmentVariables()
                 .Build();
 
             var per = new PersistanceService();
