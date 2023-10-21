@@ -86,6 +86,8 @@ _client.ReactionAdded += HandleReactionAsync;
 await services.GetRequiredService<CommandHandler>().InitializeAsync();
 
 await _client.LoginAsync(TokenType.Bot, _config["Token"]);
+
+Console.WriteLine(_config["Token"]);
 await _client.StartAsync();
 
 async Task HandleReactionAsync(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel,
