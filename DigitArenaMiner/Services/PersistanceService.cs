@@ -164,7 +164,7 @@ public class PersistanceService : IPersistanceService
 
     public async Task<List<CumRecord>> GetCumRecords(ulong userId, int size = 10)
     {
-        return await _context.CumRecords.Where(x => x.UserId == userId).OrderBy(x => x.Timestamp).Take(size).ToListAsync();
+        return await _context.CumRecords.Where(x => x.UserId == userId).OrderByDescending(x => x.Timestamp).Take(size).ToListAsync();
     }
 
     public async Task<List<LeaderboardItem>> GetCumLeaderboard(int size)
