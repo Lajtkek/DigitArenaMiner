@@ -1,3 +1,4 @@
+using System.Globalization;
 using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
@@ -65,12 +66,13 @@ public class TrackerCommands : InteractionModuleBase<SocketInteractionContext>
         var embed = new EmbedBuilder();
 
         embed.Title = "Cum record";
+        CultureInfo cs = new CultureInfo("cs-CZ");
         
         foreach (var cumRecord in records)
         {
             embed.Fields.Add(new EmbedFieldBuilder()
             {
-                Name = cumRecord.Timestamp.ToShortDateString(),
+                Name = cumRecord.Timestamp.ToString("U", cs),
                 Value = cumRecord.Description,
                 IsInline = false
             });
