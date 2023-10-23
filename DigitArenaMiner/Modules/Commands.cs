@@ -103,30 +103,30 @@ namespace DigitArenaBot.Services
         
         
         
-        [SlashCommand("leaderboard", "Zobrazí")]
-        public async Task Leaderboard(string emoteName)
-        {
-            var emote = _mineableEmotes.FirstOrDefault(x => x.Name == emoteName);
-            if (emote == null)
-            {
-                await RespondAsync($"Emote není registrován, registrované emoty jsou ({string.Join(",",_mineableEmotes.Select(x => x.Name).ToList())})");
-                return;
-            }
-            
-            await RespondAsync("Načítám data z data_22_09_2023.csv");
-            
-            var results = await _persistanceService.Get(emote);
-            var response2 = results.Select(x => $"<@{x.Id}> má {x.Count}").ToList();
-
-            var embedBuilder = new EmbedBuilder
-            {
-                Title = $"{emote.EmoteIdentifier} Leaderboard ",
-                Description = string.Join("\n",response2),
-                Color = Color.Default // You can set the color of the embed here
-            };
-
-            await FollowupAsync(null, embed: embedBuilder.Build(), allowedMentions: Discord.AllowedMentions.None);
-        }
+        // [SlashCommand("leaderboard", "Zobrazí")]
+        // public async Task Leaderboard(string emoteName)
+        // {
+        //     var emote = _mineableEmotes.FirstOrDefault(x => x.Name == emoteName);
+        //     if (emote == null)
+        //     {
+        //         await RespondAsync($"Emote není registrován, registrované emoty jsou ({string.Join(",",_mineableEmotes.Select(x => x.Name).ToList())})");
+        //         return;
+        //     }
+        //     
+        //     await RespondAsync("Načítám data z data_22_09_2023.csv");
+        //     
+        //     var results = await _persistanceService.Get(emote);
+        //     var response2 = results.Select(x => $"<@{x.Id}> má {x.Count}").ToList();
+        //
+        //     var embedBuilder = new EmbedBuilder
+        //     {
+        //         Title = $"{emote.EmoteIdentifier} Leaderboard ",
+        //         Description = string.Join("\n",response2),
+        //         Color = Color.Default // You can set the color of the embed here
+        //     };
+        //
+        //     await FollowupAsync(null, embed: embedBuilder.Build(), allowedMentions: Discord.AllowedMentions.None);
+        // }
         
         [SlashCommand("good-morning", "idk")]
         public async Task GoodMorning()

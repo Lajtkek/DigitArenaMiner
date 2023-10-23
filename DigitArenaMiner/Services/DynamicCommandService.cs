@@ -12,6 +12,7 @@ public class DynamicCommandService
     private readonly DiscordSocketClient _client;
     private readonly List<UserAction> _userActions;
     private readonly List<Guru> _gurus;
+    private readonly List<MineableEmote> _mineableEmotes;
     private readonly IPersistanceService _persistanceService;
     
     public DynamicCommandService(IConfigurationRoot config, DiscordSocketClient client, IPersistanceService persistanceService)
@@ -21,6 +22,7 @@ public class DynamicCommandService
         _persistanceService = persistanceService;
         _userActions = _config.GetSection("UserActions").Get<List<UserAction>>();
         _gurus = _config.GetSection("Gurus").Get<List<Guru>>();
+        _mineableEmotes = _config.GetSection("MineableEmotes").Get<List<MineableEmote>>();
     }
 
     public async Task RegisterDynamicCommands()
@@ -33,6 +35,8 @@ public class DynamicCommandService
         await RegisterUserActionLeaderboard();
             
         await RegisterGurus();
+
+        await RegisterReactionLeaderboard();
         
         _client.InteractionCreated += async (interaction) =>
         {
@@ -50,9 +54,60 @@ public class DynamicCommandService
                 }else if (slashCommand.CommandName == "useraction-leaderboard")
                 {
                     await HandleUserActionLeaderboard(slashCommand);
+                }else if (slashCommand.CommandName == "leaderboard")
+                {
+                    await HandleEmoteLeaderboardCommand(slashCommand);
                 }
             }
         };
+    }
+
+    private async Task RegisterReactionLeaderboard()
+    {
+        var leaderboardCommandOptions = new SlashCommandOptionBuilder()
+            .WithName("emoteName")
+            .WithDescription("Name of emote you want to see")
+            .WithRequired(true)
+            .WithType(ApplicationCommandOptionType.String);
+        
+        foreach (var emote in _mineableEmotes)
+        {
+            leaderboardCommandOptions.AddChoice(emote.EmoteIdentifier, emote.EmoteIdentifier);
+        }
+
+        var guildCommand = new SlashCommandBuilder()
+            .WithName("loaderboard")
+            .WithDescription("Gets top message reaction counts")
+            .AddOption(leaderboardCommandOptions);
+
+        try
+        {
+            await _client.Rest.CreateGlobalCommand(guildCommand.Build());
+        }catch(ApplicationCommandException exception)
+        {
+            Console.WriteLine(exception.Message);
+        }
+    }
+
+    private async Task HandleEmoteLeaderboardCommand(SocketSlashCommand context)
+    {
+        var emoteIdentifier = context.Data.Options.First().Value as string;
+        
+        var emote = _mineableEmotes.FirstOrDefault(x => x.EmoteIdentifier == emoteIdentifier);
+
+        await context.DeferAsync();
+        
+        var results = await _persistanceService.Get(emote);
+        var response2 = results.Select(x => $"<@{x.Id}> má {x.Count}").ToList();
+
+        var embedBuilder = new EmbedBuilder
+        {
+            Title = $"{emote.EmoteIdentifier} Leaderboard ",
+            Description = string.Join("\n",response2),
+            Color = Color.Default // You can set the color of the embed here
+        };
+
+        await context.RespondAsync(null, embed: embedBuilder.Build(), allowedMentions: Discord.AllowedMentions.None);
     }
 
     private async Task RegisterGurus()

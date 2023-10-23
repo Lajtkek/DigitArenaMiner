@@ -61,7 +61,7 @@ public class MessageReactionService
         
         Console.WriteLine(message.Reactions.Keys.Count());
         var emotes = await message.GetReactionUsersAsync(emote, 1000).FlattenAsync();
-        int reactionCount = emotes.Count();
+        int reactionCount = emotes.Count(x => x.Id != message.Author.Id);
 
         ulong messageId = message.Id;
             
