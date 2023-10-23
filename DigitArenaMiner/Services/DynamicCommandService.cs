@@ -65,18 +65,19 @@ public class DynamicCommandService
     private async Task RegisterReactionLeaderboard()
     {
         var leaderboardCommandOptions = new SlashCommandOptionBuilder()
-            .WithName("emoteName")
+            .WithName("emote-name")
             .WithDescription("Name of emote you want to see")
             .WithRequired(true)
             .WithType(ApplicationCommandOptionType.String);
         
         foreach (var emote in _mineableEmotes)
         {
-            leaderboardCommandOptions.AddChoice(emote.EmoteIdentifier, emote.EmoteIdentifier);
+            Console.WriteLine(emote.EmoteIdentifier);
+            leaderboardCommandOptions.AddChoice(emote.Name, emote.EmoteIdentifier);
         }
 
         var guildCommand = new SlashCommandBuilder()
-            .WithName("loaderboard")
+            .WithName("leaderboard")
             .WithDescription("Gets top message reaction counts")
             .AddOption(leaderboardCommandOptions);
 
@@ -107,7 +108,7 @@ public class DynamicCommandService
             Color = Color.Default // You can set the color of the embed here
         };
 
-        await context.RespondAsync(null, embed: embedBuilder.Build(), allowedMentions: Discord.AllowedMentions.None);
+        await context.FollowupAsync(null, embed: embedBuilder.Build(), allowedMentions: Discord.AllowedMentions.None);
     }
 
     private async Task RegisterGurus()
