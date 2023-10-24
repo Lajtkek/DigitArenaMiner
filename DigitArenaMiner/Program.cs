@@ -15,6 +15,7 @@ using System.Linq;
 using System.Threading;
 using DigitArenaBot;
 using DigitArenaBot.Classes;
+using Discord.Rest;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using YoutubeExplode.Videos;
@@ -58,6 +59,7 @@ var services = builder.Services
     .AddSingleton<MessageReactionService>()
     .AddSingleton<TimeService>()
     .AddSingleton<DynamicCommandService>()
+    .AddSingleton<OpenAIService>()
     .AddSingleton<VideoDownloadService>()
     .BuildServiceProvider();
 
@@ -68,6 +70,8 @@ _persistanceService = services.GetRequiredService<IPersistanceService>();
 _config = services.GetRequiredService<IConfigurationRoot>();
 _messageReactionService = services.GetRequiredService<MessageReactionService>();
 _dynamicCommandService = services.GetRequiredService<DynamicCommandService>();
+var x = services.GetRequiredService<OpenAIService>();
+
 
 
 var _videoDownloadService = services.GetRequiredService<VideoDownloadService>();
