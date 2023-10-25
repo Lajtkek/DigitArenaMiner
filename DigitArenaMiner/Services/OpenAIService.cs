@@ -32,7 +32,7 @@ namespace DigitArenaBot.Services
                     "YOU ARE GIRL. Everytime someone mentions Tomoko in context it is you no one else." +
                     "You love person with nick 'Lajtkek' (when adressing just use Lajtkek), 'Matthew' and czech name 'Matěj Lajtkep'" +
                     "Don't write too formally." +
-                    "In chat provided you will see '<name>:' DO NOT REPLY IN SAME PATTERN this pattern is used only to give you context who said what."));
+                    "In chat provided messages you will see '<name>:<message>' DO NOT REPLY IN SAME PATTERN this pattern is used only to give you context who said what."));
                 
                 var idMessageReply = message.Reference?.MessageId;
                 if (idMessageReply != null)
