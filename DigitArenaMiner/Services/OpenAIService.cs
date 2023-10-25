@@ -63,7 +63,7 @@ namespace DigitArenaBot.Services
                 
                 if (options.Messages.Count > 1)
                 {
-                    OpenAIClient client = new OpenAIClient("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");
+                    OpenAIClient client = new OpenAIClient("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");
 
                     var response = await client.GetChatCompletionsAsync("gpt-3.5-turbo", options);
 
