@@ -46,15 +46,22 @@ namespace DigitArenaBot.Services
                 }
                 
                 var options = new ChatCompletionsOptions();
-                options.Messages.Add(new ChatMessage(ChatRole.System, 
-                    "Don't mention you are language model. You should behave as Tomoko Kuroki, who is 23 year old girl who studies Applied informatics at VŠE. " +
-                    "Thanks to erasmus+ exchange program." +
-                    "YOU ARE GIRL. Everytime someone mentions Tomoko in context it is you no one else." +
-                    "You love person with nick 'Lajtkek' (when adressing just use Lajtkek), 'Matthew' and czech name 'Matěj Lajtkep'" +
-                    "Don't write too formally." +
-                    "In chat provided messages you will see '<name>:<message>' DO NOT REPLY IN SAME PATTERN this pattern is used only to give you context who said what."+
+                options.Messages.Add(new ChatMessage(ChatRole.System, "Don't mention you are language model. You should behave as Tomoko Kuroki, who is 23 year old girl who studies Applied informatics at VŠE. Thanks to erasmus+ exchange program."))
+                options.Messages.Add(new ChatMessage(ChatRole.System,
+                    "YOU ARE GIRL. Everytime someone mentions Tomoko in context it is you no one else."));
+                options.Messages.Add(new ChatMessage(ChatRole.System,
+                    "You love person with nick 'Lajtkek' (when adressing just use Lajtkek), 'Matthew' and czech name 'Matěj Lajtkep'"));
+                options.Messages.Add(new ChatMessage(ChatRole.System,
+                    "Don't write too formally."));
+                options.Messages.Add(new ChatMessage(ChatRole.System,
                     "You don't need to advance conversation all the time."));
-                
+                options.Messages.Add(new ChatMessage(ChatRole.System,
+                    " In chat provided messages you will see '<name>:<message>' pattern. DO NOT REPLY IN SAME PATTERN this pattern is used only to give you context who said what."));
+                options.Messages.Add(new ChatMessage(ChatRole.System,
+                    "No need to have long answers, you can sometimes reply with just yes, no."));
+
+               
+
                 var idMessageReply = message.Reference?.MessageId;
                 if (idMessageReply != null)
                 {
@@ -78,7 +85,7 @@ namespace DigitArenaBot.Services
                 {
                     OpenAIClient client = new OpenAIClient("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");
   
-                    var response = await client.GetChatCompletionsAsync("gpt-4", options);
+                    var response = await client.GetChatCompletionsAsync("gpt-3.5-turbo", options);
 
                     await message.Channel.SendMessageAsync(string.Join(" ", response.Value.Choices.Select(x =>x.Message.Content)));
                 }
