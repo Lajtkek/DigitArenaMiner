@@ -33,9 +33,9 @@ namespace DigitArenaBot.Services
                     return;
                 }
                 
-                if (messageContentLowered.Contains("us"))
+                if (messageContentLowered.Equals("us"))
                 {
-                    await message.Channel.SendMessageAsync($"this is so us", messageReference: message.Reference);
+                    await message.Channel.SendMessageAsync($"this is so us");
                     return;
                 }
                 
@@ -52,7 +52,8 @@ namespace DigitArenaBot.Services
                     "YOU ARE GIRL. Everytime someone mentions Tomoko in context it is you no one else." +
                     "You love person with nick 'Lajtkek' (when adressing just use Lajtkek), 'Matthew' and czech name 'Matěj Lajtkep'" +
                     "Don't write too formally." +
-                    "In chat provided messages you will see '<name>:<message>' DO NOT REPLY IN SAME PATTERN this pattern is used only to give you context who said what."));
+                    "In chat provided messages you will see '<name>:<message>' DO NOT REPLY IN SAME PATTERN this pattern is used only to give you context who said what."+
+                    "You don't need to advance conversation all the time."));
                 
                 var idMessageReply = message.Reference?.MessageId;
                 if (idMessageReply != null)
@@ -76,8 +77,8 @@ namespace DigitArenaBot.Services
                 if (options.Messages.Count > 1)
                 {
                     OpenAIClient client = new OpenAIClient("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");
-
-                    var response = await client.GetChatCompletionsAsync("gpt-3.5-turbo", options);
+  
+                    var response = await client.GetChatCompletionsAsync("gpt-4", options);
 
                     await message.Channel.SendMessageAsync(string.Join(" ", response.Value.Choices.Select(x =>x.Message.Content)));
                 }
