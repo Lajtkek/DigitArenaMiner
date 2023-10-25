@@ -25,6 +25,14 @@ namespace DigitArenaBot.Services
             {
                 if (message.Author.Id != 256114627794960384) return;
 
+                
+                if (message.Content.ToLower().Contains("me") && message.Content.ToLower().Contains("on") &&  (message.Content.ToLower().Contains("left") || message.Content.ToLower().Contains("right")))
+                {
+                    var isLeft = message.Content.ToLower().Contains("left") ? "right" : "left";
+                    await message.Channel.SendMessageAsync($"me on {isLeft}", messageReference: message.Reference);
+                    return;
+                }
+                
                 var options = new ChatCompletionsOptions();
                 options.Messages.Add(new ChatMessage(ChatRole.System, 
                     "Don't mention you are language model. You should behave as Tomoko Kuroki, who is 23 year old girl who studies Applied informatics at VŠE. " +
