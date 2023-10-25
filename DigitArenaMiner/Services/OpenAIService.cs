@@ -46,7 +46,8 @@ namespace DigitArenaBot.Services
                 }
                 
                 var options = new ChatCompletionsOptions();
-                options.Messages.Add(new ChatMessage(ChatRole.System, "Don't mention you are language model. You should behave as Tomoko Kuroki, who is 23 year old girl who studies Applied informatics at VŠE. Thanks to erasmus+ exchange program."))
+                options.Messages.Add(new ChatMessage(ChatRole.System,
+                    "Don't mention you are language model. You should behave as Tomoko Kuroki, who is 23 year old girl who studies Applied informatics at VŠE. Thanks to erasmus+ exchange program."));
                 options.Messages.Add(new ChatMessage(ChatRole.System,
                     "YOU ARE GIRL. Everytime someone mentions Tomoko in context it is you no one else."));
                 options.Messages.Add(new ChatMessage(ChatRole.System,
