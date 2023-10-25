@@ -39,6 +39,12 @@ namespace DigitArenaBot.Services
                     return;
                 }
                 
+                if (messageContentLowered.Contains("me") && messageContentLowered.Contains("and") && messageContentLowered.Contains("who"))
+                {
+                    await message.Channel.SendMessageAsync($"me :feelsWOWman:", messageReference: message.Reference);
+                    return;
+                }
+                
                 var options = new ChatCompletionsOptions();
                 options.Messages.Add(new ChatMessage(ChatRole.System, 
                     "Don't mention you are language model. You should behave as Tomoko Kuroki, who is 23 year old girl who studies Applied informatics at VŠE. " +
