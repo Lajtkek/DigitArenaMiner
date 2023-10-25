@@ -35,6 +35,7 @@ namespace DigitArenaBot.Services
     
                     if(replyMsg == null) return;
 
+                    
                     if (replyMsg.Author.Id != 1155178035046252555 && !message.Content.ToLower().Contains("tomoko")) return;
                     
                     options.Messages.Add(new ChatMessage(ChatRole.Assistant, $"{replyMsg.Author.Username}:" + replyMsg.Content));
