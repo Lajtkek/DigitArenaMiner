@@ -41,7 +41,7 @@ namespace DigitArenaBot.Services
                 
                 if (messageContentLowered.Contains("me") && messageContentLowered.Contains("and") && messageContentLowered.Contains("who"))
                 {
-                    await message.Channel.SendMessageAsync($"me :feelsWOWman:", messageReference: message.Reference);
+                    await message.Channel.SendMessageAsync($"me <:feelsWOWman:946051635610812456>", messageReference: message.Reference);
                     return;
                 }
                 
