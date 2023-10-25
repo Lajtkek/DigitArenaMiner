@@ -25,11 +25,17 @@ namespace DigitArenaBot.Services
             {
                 if (message.Author.Id != 256114627794960384) return;
 
-                
-                if (message.Content.ToLower().Contains("me") && message.Content.ToLower().Contains("on") &&  (message.Content.ToLower().Contains("left") || message.Content.ToLower().Contains("right")))
+                var messageContentLowered = message.Content.ToLower();
+                if (messageContentLowered.Contains("me") && messageContentLowered.Contains("on") &&  (messageContentLowered.Contains("left") || messageContentLowered.Contains("right")))
                 {
                     var isLeft = message.Content.ToLower().Contains("left") ? "right" : "left";
                     await message.Channel.SendMessageAsync($"me on {isLeft}", messageReference: message.Reference);
+                    return;
+                }
+                
+                if (messageContentLowered.Contains("us"))
+                {
+                    await message.Channel.SendMessageAsync($"this is so us", messageReference: message.Reference);
                     return;
                 }
                 
