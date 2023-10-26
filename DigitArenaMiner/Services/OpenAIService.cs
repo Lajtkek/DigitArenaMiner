@@ -61,7 +61,7 @@ namespace DigitArenaBot.Services
                 options.Messages.Add(new ChatMessage(ChatRole.System,
                     "No need to have long answers, you can sometimes reply with just yes, no."));
 
-               
+                var systemConfigMessages = options.Messages.Count;
 
                 var idMessageReply = message.Reference?.MessageId;
                 if (idMessageReply != null)
@@ -71,7 +71,7 @@ namespace DigitArenaBot.Services
                     if(replyMsg == null) return;
 
                     
-                    if (replyMsg.Author.Id != 1155178035046252555 && !message.Content.ToLower().Contains("tomoko")) return;
+                    if (replyMsg.Author.Id != 1155178035046252555) return;
                     
                     options.Messages.Add(new ChatMessage(ChatRole.Assistant, $"{replyMsg.Author.Username}:" + replyMsg.Content));
                     options.Messages.Add(new ChatMessage(ChatRole.User,$"{replyMsg.Author.Username}:" + message.Content));
@@ -82,7 +82,7 @@ namespace DigitArenaBot.Services
                     options.Messages.Add(new ChatMessage(ChatRole.User, $"{message.Author.Username}:" + message.Content));
                 }
                 
-                if (options.Messages.Count > 1)
+                if (options.Messages.Count > systemConfigMessages)
                 {
                     OpenAIClient client = new OpenAIClient("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");
   
