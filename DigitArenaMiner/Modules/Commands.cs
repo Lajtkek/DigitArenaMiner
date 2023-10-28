@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Azure.AI.OpenAI;
 using DigitArenaBot.Classes;
 using Discord.Commands;
 using Discord.Net;
@@ -31,12 +32,13 @@ namespace DigitArenaBot.Services
         private readonly TimeService _timeService;
         private readonly VideoDownloadService _videoDownloadService;
         private readonly HelperService _helperService;
+        private readonly OpenAIService _openAiService;
         
 
         private List<ulong> _allowedChannels;
 
         // constructor injection is also a valid way to access the dependecies
-        public ExampleCommands (CommandHandler handler, IConfigurationRoot config, DiscordSocketClient client, IPersistanceService persistanceService, MessageReactionService messageReactionService, TimeService timeService, VideoDownloadService videoDownloadService, HelperService helperService)
+        public ExampleCommands (CommandHandler handler, IConfigurationRoot config, DiscordSocketClient client, IPersistanceService persistanceService, MessageReactionService messageReactionService, TimeService timeService, VideoDownloadService videoDownloadService, HelperService helperService, OpenAIService openAiService)
         {
             _handler = handler;
             _config = config;
@@ -47,6 +49,7 @@ namespace DigitArenaBot.Services
             _timeService = timeService;
             _videoDownloadService = videoDownloadService;
             _helperService = helperService;
+            _openAiService = openAiService;
 
             _allowedChannels = _config.GetSection("AllowedChannels").Get<List<ulong>>();
             
@@ -275,5 +278,52 @@ namespace DigitArenaBot.Services
                  await FollowupAsync($"Nastala exception: {e.Message}");
              }
          }
+
+         // [SlashCommand("context", "Získá kontext o poslední")]
+         // public async Task GetContext(int messageCount, string? messageToBot)
+         // {
+         //     if(!await _helperService.IsUserPrivileged(Context.User))
+         //     {
+         //         await RespondAsync("**Tento příkaz je pouze pro privilegované uživatele.**");
+         //         return;
+         //     }
+         //     
+         //     if (messageCount > 500)
+         //     {
+         //         await RespondAsync("Tolik zpráv nemůžeš.");
+         //         return;
+         //     }
+         //
+         //     await RespondAsync("Jdu si to přečíst. hehe");
+         //     
+         //     var messages = Context.Channel.GetMessagesAsync(messageCount).FlattenAsync().GetAwaiter().GetResult();
+         //
+         //     var options = new ChatCompletionsOptions();
+         //     options.Messages.Add(new ChatMessage(ChatRole.System, "Don't mention you are language model. You should behave as Tomoko Kuroki, who is 23 year old girl"));
+         //     
+         //     options.Messages.Add(new ChatMessage(ChatRole.System, $"Create short summary of following chat:"));
+         //
+         //     if (!string.IsNullOrEmpty(messageToBot))
+         //     {
+         //         options.Messages.Add(new ChatMessage(ChatRole.System, messageToBot));
+         //     }
+         //     
+         //     foreach (var message in messages)
+         //     {
+         //         var replyReference = message.Reference != null ? $"(Replying to message:{message.Reference.MessageId})" : "";
+         //         options.Messages.Add(new ChatMessage(ChatRole.System, $"(MessageId:{message.Id}) Message by {message.Author.Username} {replyReference}: {message.Content}"));
+         //     }
+         //
+         //     var client = _openAiService.CreateClient();
+         //
+         //     var result = await client.GetChatCompletionsAsync("gpt-3.5-turbo", options);
+         //
+         //     foreach (var valueChoice in result.Value.Choices)
+         //     {
+         //         await FollowupAsync(valueChoice.Message.Content);
+         //     }
+         // }
     }
+    
+
 }

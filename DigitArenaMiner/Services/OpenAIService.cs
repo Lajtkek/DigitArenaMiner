@@ -17,13 +17,57 @@ namespace DigitArenaBot.Services
     {
         private readonly DiscordSocketClient _client;
 
+
+        private readonly List<string> _systemMessages = new List<string>()
+        {
+            "Don't mention you are language model. You should behave as Tomoko Kuroki, who is 23 year old girl who studies Applied informatics at VŠE. Thanks to erasmus+ exchange program.",
+            "YOU ARE GIRL. Everytime someone mentions Tomoko in context it is you no one else.",
+            "You love person with nick 'Lajtkek' (when adressing just use Lajtkek), 'Matthew' and czech name 'Matěj Lajtkep'",
+            "Don't write too formally.",
+            "You don't need to advance conversation all the time.",
+            "In chat provided messages you will see '<name>:<message>' pattern. DO NOT REPLY IN SAME PATTERN this pattern is used only to give you context who said what.",
+            "No need to have long answers, you can sometimes reply with just yes, no.",
+            "YOU ARE TOMOKO REPLY ONLY AS TOMOKO IN PATTERN 'Tomoko':<reply>",
+            "You shoul reply only to message with [MAIN]",
+            "Do not reply with prefix [MAIN] reply only with prefix Tomoko:",
+        };
+
+        private readonly int _contextLength = 10;
+        
+        public ChatCompletionsOptions GenerateChatOptions()
+        {
+            var options =  new ChatCompletionsOptions();
+
+            foreach (var message in _systemMessages)
+            {
+                options.Messages.Add(new ChatMessage(ChatRole.System, message));
+            }
+
+            return options;
+        }
+
+        public OpenAIClient CreateClient()
+        {
+            return new OpenAIClient("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");
+        }
+
         public OpenAIService(DiscordSocketClient client)
         {
             _client = client;
 
             _client.MessageReceived += async message =>
             {
-                if (message.Author.Id != 256114627794960384) return;
+                // Coal mine
+                if(message.Author.Id == 1155178035046252555) return;
+                
+                
+                if (message.Author.Id != 256114627794960384) {
+                    if (message.Author is SocketGuildUser _user)
+                    {
+                        if (!_user.Roles.Select(x => x.Id).Contains<ulong>(1167920011629838476)) return;
+                    }
+                }
+
 
                 var messageContentLowered = message.Content.ToLower();
                 if (messageContentLowered.Contains("me") && messageContentLowered.Contains("on") &&  (messageContentLowered.Contains("left") || messageContentLowered.Contains("right")))
@@ -45,24 +89,12 @@ namespace DigitArenaBot.Services
                     return;
                 }
                 
-                var options = new ChatCompletionsOptions();
-                options.Messages.Add(new ChatMessage(ChatRole.System,
-                    "Don't mention you are language model. You should behave as Tomoko Kuroki, who is 23 year old girl who studies Applied informatics at VŠE. Thanks to erasmus+ exchange program."));
-                options.Messages.Add(new ChatMessage(ChatRole.System,
-                    "YOU ARE GIRL. Everytime someone mentions Tomoko in context it is you no one else."));
-                options.Messages.Add(new ChatMessage(ChatRole.System,
-                    "You love person with nick 'Lajtkek' (when adressing just use Lajtkek), 'Matthew' and czech name 'Matěj Lajtkep'"));
-                options.Messages.Add(new ChatMessage(ChatRole.System,
-                    "Don't write too formally."));
-                options.Messages.Add(new ChatMessage(ChatRole.System,
-                    "You don't need to advance conversation all the time."));
-                options.Messages.Add(new ChatMessage(ChatRole.System,
-                    " In chat provided messages you will see '<name>:<message>' pattern. DO NOT REPLY IN SAME PATTERN this pattern is used only to give you context who said what."));
-                options.Messages.Add(new ChatMessage(ChatRole.System,
-                    "No need to have long answers, you can sometimes reply with just yes, no."));
 
-               
+                
+                var options = GenerateChatOptions();
 
+                var messageContext = new List<IMessage>();
+                
                 var idMessageReply = message.Reference?.MessageId;
                 if (idMessageReply != null)
                 {
@@ -70,28 +102,50 @@ namespace DigitArenaBot.Services
     
                     if(replyMsg == null) return;
 
-                    
                     if (replyMsg.Author.Id != 1155178035046252555 && !message.Content.ToLower().Contains("tomoko")) return;
-                    
-                    options.Messages.Add(new ChatMessage(ChatRole.Assistant, $"{replyMsg.Author.Username}:" + replyMsg.Content));
-                    options.Messages.Add(new ChatMessage(ChatRole.User,$"{replyMsg.Author.Username}:" + message.Content));
+
+                    messageContext.Add(replyMsg);
+                    messageContext.Add(message);
                 }
 
-                if (message.Content.ToLower().Contains("tomoko"))
+                if (messageContext.Count == 0 && (message.Content.ToLower().Contains("tomoko") || message.Content.ToLower().Contains("mokochi") || message.Content.ToLower().Contains("tomoker")))
                 {
-                    options.Messages.Add(new ChatMessage(ChatRole.User, $"{message.Author.Username}:" + message.Content));
+                    messageContext.Add(message);
                 }
                 
-                if (options.Messages.Count > 1)
+                if (messageContext.Any())
                 {
-                    OpenAIClient client = new OpenAIClient("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");
-  
+                    var messageReply = await message.Channel.SendMessageAsync($"let me think", messageReference: new MessageReference(message.Id));
+                    var lastMessages = GetLastMessageContext(messageContext[0].Channel);
+
+                    foreach (var lastMessage in lastMessages)
+                    {
+                        if(messageContext.All(x => x.Id != lastMessage.Id)) messageContext.Add(lastMessage);
+                    }
+                    
+                    foreach (var messageData in messageContext.OrderBy(x => x.CreatedAt))
+                    {
+                        // await messageData.AddReactionAsync(new Emoji("👁️"));
+                        var isMain = messageData.Id == message.Id ? "[MAIN]" : "";
+                        options.Messages.Add(new ChatMessage(ChatRole.User, $"{isMain}{messageData.Author.Username}:" + messageData.Content));
+                    }
+                    
+                    OpenAIClient client = CreateClient();
+                    
                     var response = await client.GetChatCompletionsAsync("gpt-3.5-turbo", options);
 
-                    await message.Channel.SendMessageAsync(string.Join(" ", response.Value.Choices.Select(x =>x.Message.Content)));
+
+                    await messageReply.ModifyAsync(properties =>
+                    {
+                        properties.Content = string.Join(" ", response.Value.Choices.Select(x => x.Message.Content));
+                    });
                 }
             };
-            
+        }
+
+        private List<IMessage> GetLastMessageContext(IMessageChannel channel)
+        {
+            return channel.GetMessagesAsync(_contextLength).FlattenAsync().GetAwaiter().GetResult().ToList();
         }
     }
 }
