@@ -80,7 +80,7 @@ namespace DigitArenaBot.Services
             };
         }
         
-        [SlashCommand("high-five", "Projede všechny zrávy a uloží emotes")]
+        [SlashCommand("high-five", "Creates high five request.")]
          public async Task IndexChannel()
          {
              var builder = new ComponentBuilder();
