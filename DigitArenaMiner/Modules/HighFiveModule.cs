@@ -69,7 +69,7 @@ namespace DigitArenaBot.Services
 
                     var embedBuilder = new EmbedBuilder();
                     embedBuilder.Title = "Proběhnul placák!";
-                    embedBuilder.Description = $"{asker.Username} a {component.User.Username} si plánculi";
+                    embedBuilder.Description = $"{asker.Username} a {component.User.Username} si plácnuli";
                     embedBuilder.ImageUrl = "https://media.tenor.com/jib9YZw1YsIAAAAC/madagscar-penguins.gif";
 
 
