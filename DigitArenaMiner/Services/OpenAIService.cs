@@ -69,25 +69,25 @@ namespace DigitArenaBot.Services
                 }
 
 
-                var messageContentLowered = message.Content.ToLower();
-                if (messageContentLowered.Contains("me") && messageContentLowered.Contains("on") &&  (messageContentLowered.Contains("left") || messageContentLowered.Contains("right")))
-                {
-                    var isLeft = message.Content.ToLower().Contains("left") ? "right" : "left";
-                    await message.Channel.SendMessageAsync($"me on {isLeft}", messageReference: message.Reference);
-                    return;
-                }
-                
-                if (messageContentLowered.Equals("us"))
-                {
-                    await message.Channel.SendMessageAsync($"this is so us");
-                    return;
-                }
-                
-                if (messageContentLowered.Contains("me") && messageContentLowered.Contains("and") && messageContentLowered.Contains("who"))
-                {
-                    await message.Channel.SendMessageAsync($"me <:feelsWOWman:946051635610812456>", messageReference: message.Reference);
-                    return;
-                }
+                // var messageContentLowered = message.Content.ToLower();
+                // if (messageContentLowered.Contains("me") && messageContentLowered.Contains("on") &&  (messageContentLowered.Contains("left") || messageContentLowered.Contains("right")))
+                // {
+                //     var isLeft = message.Content.ToLower().Contains("left") ? "right" : "left";
+                //     await message.Channel.SendMessageAsync($"me on {isLeft}", messageReference: message.Reference);
+                //     return;
+                // }
+                //
+                // if (messageContentLowered.Equals("us"))
+                // {
+                //     await message.Channel.SendMessageAsync($"this is so us");
+                //     return;
+                // }
+                //
+                // if (messageContentLowered.Contains("me") && messageContentLowered.Contains("and") && messageContentLowered.Contains("who"))
+                // {
+                //     await message.Channel.SendMessageAsync($"me <:feelsWOWman:946051635610812456>", messageReference: message.Reference);
+                //     return;
+                // }
                 
 
                 
