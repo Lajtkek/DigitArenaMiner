@@ -20,16 +20,12 @@ namespace DigitArenaBot.Services
 
         private readonly List<string> _systemMessages = new List<string>()
         {
-            "Don't mention you are language model. You should behave as Tomoko Kuroki, who is 23 year old girl who studies Applied informatics at VŠE. Thanks to erasmus+ exchange program.",
-            "YOU ARE GIRL. Everytime someone mentions Tomoko in context it is you no one else.",
+            "Don't mention you are language model. You should behave as Tomoko Kuroki, shy nerdy girl who is 23 year old and studies Applied informatics at VŠE. Thanks to erasmus+ exchange program.",
             "You love person with nick 'Lajtkek' (when adressing just use Lajtkek), 'Matthew' and czech name 'Matěj Lajtkep'",
-            "Don't write too formally.",
-            "You don't need to advance conversation all the time.",
-            "In chat provided messages you will see '<name>:<message>' pattern. DO NOT REPLY IN SAME PATTERN this pattern is used only to give you context who said what.",
-            "No need to have long answers, you can sometimes reply with just yes, no.",
-            "YOU ARE TOMOKO REPLY ONLY AS TOMOKO IN PATTERN 'Tomoko':<reply>",
-            "You shoul reply only to message with [MAIN]",
-            "Do not reply with prefix [MAIN] reply only with prefix Tomoko:",
+            "Don't write formally.",
+            "In chat provided below you will see messages, you should reply to only last message.",
+            "Reply with prefix Tomoko:",
+            "Try to keep answers short."
         };
 
         private readonly int _contextLength = 10;
@@ -57,40 +53,16 @@ namespace DigitArenaBot.Services
 
             _client.MessageReceived += async message =>
             {
-                // Coal mine
                 if(message.Author.Id == 1155178035046252555) return;
-                
-                
+
+                if (message.Channel.Id == 1145463500085411910) return;
                 if (message.Author.Id != 256114627794960384) {
                     if (message.Author is SocketGuildUser _user)
                     {
                         if (!_user.Roles.Select(x => x.Id).Contains<ulong>(1167920011629838476)) return;
                     }
                 }
-
-
-                // var messageContentLowered = message.Content.ToLower();
-                // if (messageContentLowered.Contains("me") && messageContentLowered.Contains("on") &&  (messageContentLowered.Contains("left") || messageContentLowered.Contains("right")))
-                // {
-                //     var isLeft = message.Content.ToLower().Contains("left") ? "right" : "left";
-                //     await message.Channel.SendMessageAsync($"me on {isLeft}", messageReference: message.Reference);
-                //     return;
-                // }
-                //
-                // if (messageContentLowered.Equals("us"))
-                // {
-                //     await message.Channel.SendMessageAsync($"this is so us");
-                //     return;
-                // }
-                //
-                // if (messageContentLowered.Contains("me") && messageContentLowered.Contains("and") && messageContentLowered.Contains("who"))
-                // {
-                //     await message.Channel.SendMessageAsync($"me <:feelsWOWman:946051635610812456>", messageReference: message.Reference);
-                //     return;
-                // }
-                
-
-                
+                  
                 var options = GenerateChatOptions();
 
                 var messageContext = new List<IMessage>();
@@ -115,7 +87,7 @@ namespace DigitArenaBot.Services
                 
                 if (messageContext.Any())
                 {
-                    var messageReply = await message.Channel.SendMessageAsync($"let me think", messageReference: new MessageReference(message.Id));
+                    var messageReply = await message.Channel.SendMessageAsync($"Reading...", messageReference: new MessageReference(message.Id));
                     var lastMessages = GetLastMessageContext(messageContext[0].Channel);
 
                     foreach (var lastMessage in lastMessages)
@@ -126,19 +98,42 @@ namespace DigitArenaBot.Services
                     foreach (var messageData in messageContext.OrderBy(x => x.CreatedAt))
                     {
                         // await messageData.AddReactionAsync(new Emoji("👁️"));
-                        var isMain = messageData.Id == message.Id ? "[MAIN]" : "";
-                        options.Messages.Add(new ChatMessage(ChatRole.User, $"{isMain}{messageData.Author.Username}:" + messageData.Content));
+                        var isMain = messageData.Id == message.Id ? "Last message " : "";
+                        var isBot = messageData.Author.Id == 1155178035046252555;
+                        options.Messages.Add(new ChatMessage(isBot ? ChatRole.Assistant : ChatRole.User, $"{isMain}" + messageData.Content){ Name = isBot ? "Tomoko" : messageData.Author.Username});
                     }
                     
                     OpenAIClient client = CreateClient();
                     
-                    var response = await client.GetChatCompletionsAsync("gpt-3.5-turbo", options);
-
-
+                    Console.WriteLine("============== Context ====================");
+                    foreach (var optionsMessage in options.Messages)
+                    {
+                        Console.WriteLine($"[{optionsMessage.Role}] Autor { optionsMessage.Name }: {optionsMessage.Content}");
+                    }
+                    Console.WriteLine("==============   END   ====================");
+                    
                     await messageReply.ModifyAsync(properties =>
                     {
-                        properties.Content = string.Join(" ", response.Value.Choices.Select(x => x.Message.Content));
+                        properties.Content = "Typing...";
                     });
+                    
+                    var response = await client.GetChatCompletionsAsync("gpt-3.5-turbo", options);
+
+                    try
+                    {
+                        await messageReply.ModifyAsync(properties =>
+                        {
+                            properties.Content = string.Join(" ",
+                                response.Value.Choices.Select(x => x.Message.Content));
+                        });
+                    }
+                    catch (Exception e)
+                    {
+                        await messageReply.ModifyAsync(properties =>
+                        {
+                            properties.Content = $"Sheeesh I lost it ({e.Message})";
+                        });
+                    }
                 }
             };
         }
