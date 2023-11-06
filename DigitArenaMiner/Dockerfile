@@ -1,4 +1,4 @@
-FROM docker.io/lajtkek/digitminer:33 AS build
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 
 WORKDIR /src
 COPY DigitArenaMiner.csproj .
@@ -17,6 +17,11 @@ RUN chown -R app:app /app
 USER app
 RUN mkdir -p /app
 RUN chmod -R 777 /app
+
+USER root
+RUN apt-get update && apt-get upgrade
+USER root
+RUN apt-get install -y python3
 
 USER app
 ENTRYPOINT ["dotnet", "DigitArenaMiner.dll"]
