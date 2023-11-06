@@ -121,9 +121,13 @@ namespace DigitArenaBot.Services
             {
                 RestrictFilenames = true,
                 WindowsFilenames = true,
-                // PostprocessorArgs = "ffmpeg:-vcodec h264_nvenc"
-            });
+                RecodeVideo = VideoRecodeFormat.Mkv,
+            }, progress: new Progress<DownloadProgress>((progress =>
+            {
+                Console.WriteLine($"{progress.State}: {progress.Progress}");
+            })));
 
+            Console.WriteLine("100000000%");
             return res.Data;
         }
         
@@ -131,7 +135,7 @@ namespace DigitArenaBot.Services
         {
             var ytdl = new YoutubeDL();
             ytdl.YoutubeDLPath = Path.Combine(_youtubeDdpPath, Directory.GetFiles(_youtubeDdpPath).First());
-            ytdl.FFmpegPath = Path.Combine(_FFmpegPath, Directory.GetFiles(_FFmpegPath).First());
+            ytdl.FFmpegPath = Path.Combine(_FFmpegPath, "ffmpeg");
             return ytdl;
         }
     }
