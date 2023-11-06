@@ -3,6 +3,7 @@ using Discord.Interactions;
 using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -53,7 +54,26 @@ namespace DigitArenaBot.Services
         public async Task Init()
         {
             await YoutubeDLSharp.Utils.DownloadYtDlp(_youtubeDdpPath);
+            //await ExecuteUnixCommand("echo XDDDDDDDDDDDDDDDDDDDDDDDDd");
             await YoutubeDLSharp.Utils.DownloadFFmpeg(_FFmpegPath);
+        }
+
+        public async Task<string> ExecuteUnixCommand(string command)
+        {
+            var psi = new ProcessStartInfo();
+            psi.FileName = "/bin/bash";
+            psi.Arguments = command;
+            psi.RedirectStandardOutput = true;
+            psi.UseShellExecute = false;
+            psi.CreateNoWindow = true;
+
+            using var process = Process.Start(psi);
+
+            process.WaitForExitAsync();
+
+            var output = process.StandardOutput.ReadToEnd();
+
+            return output;
         }
 
         public async Task<string> DownloadVideo(string url, ExampleCommands.VideoFormat format)
@@ -94,12 +114,14 @@ namespace DigitArenaBot.Services
             {
                 throw new Exception($"Video (délky {data.Data.Duration}s) je delší než povolená délka (Best-{_maxVideoLengthSeconds}s; Worst-{mexVideoDuration}s)");
             }
-    //
+
             ytdl.OutputFolder = Path.Combine(_downloadPath, data.Data.ID);
 
             var res = await ytdl.RunVideoDownload(videoUrl, format, mergeFormat: DownloadMergeFormat.Mp4, overrideOptions: new OptionSet()
             {
-                PostprocessorArgs = "ffmpeg:-vcodec h264_nvenc"
+                RestrictFilenames = true,
+                WindowsFilenames = true,
+                // PostprocessorArgs = "ffmpeg:-vcodec h264_nvenc"
             });
 
             return res.Data;

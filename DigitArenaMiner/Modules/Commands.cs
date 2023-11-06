@@ -108,7 +108,7 @@ namespace DigitArenaBot.Services
         
         // [SlashCommand("leaderboard", "Zobrazí")]
         // public async Task Leaderboard(string emoteName)
-        // {
+        // {    
         //     var emote = _mineableEmotes.FirstOrDefault(x => x.Name == emoteName);
         //     if (emote == null)
         //     {
