@@ -44,7 +44,7 @@ namespace DigitArenaBot.Services
 
         public OpenAIClient CreateClient()
         {
-            return new OpenAIClient("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");
+            return new OpenAIClient("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");
         }
 
         public OpenAIService(DiscordSocketClient client)
