@@ -16,7 +16,7 @@ RUN chown -R app:app /app
 
 USER app
 RUN mkdir -p /app
-RUN chmod -R 777 /app
+RUN chmod -R 777 .
 
 USER root
 RUN apt-get update && apt-get upgrade
