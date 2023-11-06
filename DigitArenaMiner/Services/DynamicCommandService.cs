@@ -72,7 +72,6 @@ public class DynamicCommandService
         
         foreach (var emote in _mineableEmotes)
         {
-            Console.WriteLine(emote.EmoteIdentifier);
             leaderboardCommandOptions.AddChoice(emote.Name, emote.EmoteIdentifier);
         }
 

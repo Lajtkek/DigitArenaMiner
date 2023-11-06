@@ -49,7 +49,6 @@ public class MessageReactionService
 
             if (minedEmote != null)
             {
-                Console.WriteLine(minedEmote);
                 await OnEmoteDetected(message, minedEmote);
             }
         }

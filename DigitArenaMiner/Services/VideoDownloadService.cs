@@ -53,9 +53,9 @@ namespace DigitArenaBot.Services
 
         public async Task Init()
         {
-            await YoutubeDLSharp.Utils.DownloadYtDlp(_youtubeDdpPath);
+            // await YoutubeDLSharp.Utils.DownloadYtDlp(_youtubeDdpPath);
             //await ExecuteUnixCommand("echo XDDDDDDDDDDDDDDDDDDDDDDDDd");
-            await YoutubeDLSharp.Utils.DownloadFFmpeg(_FFmpegPath);
+            // await YoutubeDLSharp.Utils.DownloadFFmpeg(_FFmpegPath);
         }
 
         public async Task<string> ExecuteUnixCommand(string command)
@@ -134,8 +134,8 @@ namespace DigitArenaBot.Services
         protected YoutubeDL CreateYoutubeDl()
         {
             var ytdl = new YoutubeDL();
-            ytdl.YoutubeDLPath = Path.Combine(_youtubeDdpPath, Directory.GetFiles(_youtubeDdpPath).First());
-            ytdl.FFmpegPath = Path.Combine(_FFmpegPath, "ffmpeg");
+            ytdl.YoutubeDLPath = "yt-dlp";
+            ytdl.FFmpegPath = "ffmpeg";
             return ytdl;
         }
     }

@@ -10,12 +10,14 @@ using System.Text;
 using System.Threading.Tasks;
 using Azure.AI.OpenAI;
 using Discord.Rest;
+using Microsoft.Extensions.Configuration;
 
 namespace DigitArenaBot.Services
 {
     public class OpenAIService
     {
         private readonly DiscordSocketClient _client;
+        private readonly IConfigurationRoot _configuration;
 
 
         private readonly List<string> _systemMessages = new List<string>()
@@ -44,12 +46,13 @@ namespace DigitArenaBot.Services
 
         public OpenAIClient CreateClient()
         {
-            return new OpenAIClient("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");
+            return new OpenAIClient(Environment.GetEnvironmentVariable("GPT_TOKEN"));
         }
 
-        public OpenAIService(DiscordSocketClient client)
+        public OpenAIService(DiscordSocketClient client, IConfigurationRoot configuration)
         {
             _client = client;
+            _configuration = configuration;
 
             _client.MessageReceived += async message =>
             {

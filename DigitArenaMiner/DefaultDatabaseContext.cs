@@ -16,7 +16,7 @@ public class DefaultDatabaseContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        var connectionString = _config["ConnectionStrings:Db"];
+        var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING");
         base.OnConfiguring(optionsBuilder);
         optionsBuilder.UseNpgsql(connectionString);
     }

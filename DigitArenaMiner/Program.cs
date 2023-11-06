@@ -47,12 +47,12 @@ var socketConfig = new DiscordSocketConfig()
 
 var socketClient = new DiscordSocketClient(socketConfig);
 
-var connectionString = config["ConnectionStrings:Db"];
+var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING");
 
 var services = builder.Services
     .AddSingleton(socketClient)
     .AddSingleton<HelperService>()
-    .AddSingleton(config).AddDbContext<DefaultDatabaseContext>(options => { }, ServiceLifetime.Singleton)
+    .AddSingleton(config).AddDbContext<DefaultDatabaseContext>(options => {  }, ServiceLifetime.Singleton)
     .AddSingleton<IPersistanceService, PersistanceService>()
     .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
     .AddSingleton<CommandHandler>()
@@ -89,9 +89,12 @@ _client.ReactionAdded += HandleReactionAsync;
 
 await services.GetRequiredService<CommandHandler>().InitializeAsync();
 
-await _client.LoginAsync(TokenType.Bot, _config["Token"]);
+var token = Environment.GetEnvironmentVariable("TOKEN");
 
-Console.WriteLine("TOKEN:" + _config["Token"]);
+Console.WriteLine("TOKEN:" + token);
+
+await _client.LoginAsync(TokenType.Bot, token);
+
 await _client.StartAsync();
 
 async Task HandleReactionAsync(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel,
