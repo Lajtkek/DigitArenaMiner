@@ -35,15 +35,14 @@ namespace DigitArenaBot.Services
 
         private readonly float _maxVideoLengthSeconds;
 
-        private readonly ICatBoxClient _catBox;
+        // private readonly ICatBoxClient _catBox;
 
-        public VideoDownloadService(DiscordSocketClient client, InteractionService commands, IServiceProvider services, IConfigurationRoot config, ICatBoxClient catBox)
+        public VideoDownloadService(DiscordSocketClient client, InteractionService commands, IServiceProvider services, IConfigurationRoot config)
         {
             _client = client;
             _commands = commands;
             _services = services;
             _config = config;
-            _catBox = catBox;
             _downloadPath = Path.Combine(_rootPath, "Downloads");
             Directory.CreateDirectory(_downloadPath);
 
@@ -128,22 +127,22 @@ namespace DigitArenaBot.Services
 
             timer.Stop();
 
-            var maxDiscordFileSize = ByteSize.Parse("22MB");
-
-            var file = File.OpenRead(res.Data);
-            var fileSize = new ByteSize(file.Length);
+            // var maxDiscordFileSize = ByteSize.Parse("22MB");
+            //
+            // var file = File.OpenRead(res.Data);
+            // var fileSize = new ByteSize(file.Length);
 
             // if (fileSize > maxDiscordFileSize)
             // {
-            Console.WriteLine(fileSize.ToString());
-                var a = await _catBox.UploadImage(new StreamUploadRequest()
-                {
-                    Stream = file,
-                    FileName = Path.GetFileName(res.Data)
-                });
+            // Console.WriteLine(fileSize.ToString());
+            //     var a = await _catBox.UploadImage(new StreamUploadRequest()
+            //     {
+            //         Stream = file,
+            //         FileName = Path.GetFileName(res.Data)
+            //     });
             // }
             
-            Console.WriteLine("FileURL" + a);
+            // Console.WriteLine("FileURL" + a);
             return res.Data;
         }
 
