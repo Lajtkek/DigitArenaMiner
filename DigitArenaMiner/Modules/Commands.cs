@@ -255,14 +255,25 @@ namespace DigitArenaBot.Services
              }
 
              await DeferAsync();
-
+             var message = await Context.Channel.SendMessageAsync($"Progress");
+             
              try
              {
-                 var videoUrl = await _videoDownloadService.DownloadVideo(url, format);
+                 var videoUrl = await _videoDownloadService.DownloadVideo(url, format, onProgress: (progressString) =>
+                 {
+                     message.ModifyAsync((m) =>
+                     {
+                         m.Content = progressString;
+                     });
+                     
+                     return "";
+                 });
+                 
                  using var videStream = await _videoDownloadService.GetVideoStream(videoUrl);
                  
                  try
                  {
+                     await message.DeleteAsync();
                      await FollowupWithFileAsync(videStream, "video.mp4", $"**Tady máš video kámo!** \n Původní odkaz:<{url}>");
                  }
                  catch (Exception e)

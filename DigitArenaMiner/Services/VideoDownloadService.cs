@@ -76,35 +76,16 @@ namespace DigitArenaBot.Services
             return output;
         }
 
-        public async Task<string> DownloadVideo(string url, ExampleCommands.VideoFormat format)
+        public async Task<string> DownloadVideo(string url, ExampleCommands.VideoFormat format,  Func<string, string> onProgress = null)
         {
-            var loweredUrl = url.ToLower();
-
             var formatString = format == ExampleCommands.VideoFormat.Best ? "bestvideo+bestaudio/best" : "worstvideo+worstaudio/worst";
             
-            return await DownloadVideoWithYtDl(url, formatString);
-        }
-
-        public Task<FileStream> GetVideoStream(string path)
-        {
-            return Task.FromResult(File.OpenRead(path));
-        }
-
-        public Task DeleteVideo(string path)
-        {
-            var dir = Path.GetDirectoryName(path);
-            Directory.Delete(dir, true);
-            return Task.CompletedTask;
-        }
-
-        protected async Task<string> DownloadVideoWithYtDl(string videoUrl, string format = "bestvideo+bestaudio/best")
-        {
             var ytdl = CreateYoutubeDl();
-            var data = await ytdl.RunVideoDataFetch(videoUrl);
+            var data = await ytdl.RunVideoDataFetch(url);
 
             if (data.Data == null || data.Data.Duration == null) throw new Exception("Data o videu jsou null.");
 
-            var mexVideoDuration = format == "bestvideo+bestaudio/best"
+            var mexVideoDuration = formatString == "bestvideo+bestaudio/best"
                 ? _maxVideoLengthSeconds
                 : _maxVideoLengthSeconds * 6;
             
@@ -117,18 +98,42 @@ namespace DigitArenaBot.Services
 
             ytdl.OutputFolder = Path.Combine(_downloadPath, data.Data.ID);
 
-            var res = await ytdl.RunVideoDownload(videoUrl, format, mergeFormat: DownloadMergeFormat.Mp4, overrideOptions: new OptionSet()
+            var timer = new Stopwatch();
+            timer.Start();
+            var res = await ytdl.RunVideoDownload(url, formatString, mergeFormat: DownloadMergeFormat.Mp4, overrideOptions: new OptionSet()
             {
                 RestrictFilenames = true,
                 WindowsFilenames = true,
-                RecodeVideo = VideoRecodeFormat.Mkv,
+                RecodeVideo = VideoRecodeFormat.Webm,
             }, progress: new Progress<DownloadProgress>((progress =>
             {
-                Console.WriteLine($"{progress.State}: {progress.Progress}");
+                if (timer.Elapsed.Seconds < 4)
+                {
+                    return;
+                }
+
+                var message = $"{progress.State}: {((int)(progress.Progress * 100)).ToString()}%";
+                if (progress.State == DownloadState.Success) message = "Success";
+                
+                onProgress?.Invoke(message);
+                Console.WriteLine(message);
+                timer.Restart();
             })));
 
-            Console.WriteLine("100000000%");
+            timer.Stop();
             return res.Data;
+        }
+
+        public Task<FileStream> GetVideoStream(string path)
+        {
+            return Task.FromResult(File.OpenRead(path));
+        }
+
+        public Task DeleteVideo(string path)
+        {
+            var dir = Path.GetDirectoryName(path);
+            Directory.Delete(dir, true);
+            return Task.CompletedTask;
         }
         
         protected YoutubeDL CreateYoutubeDl()
