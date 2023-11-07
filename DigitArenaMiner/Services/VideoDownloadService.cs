@@ -8,6 +8,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using ByteSizeLib;
+using CatBox.NET.Client;
+using CatBox.NET.Requests;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 using YoutubeDLSharp;
@@ -32,12 +35,15 @@ namespace DigitArenaBot.Services
 
         private readonly float _maxVideoLengthSeconds;
 
-        public VideoDownloadService(DiscordSocketClient client, InteractionService commands, IServiceProvider services, IConfigurationRoot config)
+        private readonly ICatBoxClient _catBox;
+
+        public VideoDownloadService(DiscordSocketClient client, InteractionService commands, IServiceProvider services, IConfigurationRoot config, ICatBoxClient catBox)
         {
             _client = client;
             _commands = commands;
             _services = services;
             _config = config;
+            _catBox = catBox;
             _downloadPath = Path.Combine(_rootPath, "Downloads");
             Directory.CreateDirectory(_downloadPath);
 
@@ -121,6 +127,23 @@ namespace DigitArenaBot.Services
             })));
 
             timer.Stop();
+
+            var maxDiscordFileSize = ByteSize.Parse("22MB");
+
+            var file = File.OpenRead(res.Data);
+            var fileSize = new ByteSize(file.Length);
+
+            // if (fileSize > maxDiscordFileSize)
+            // {
+            Console.WriteLine(fileSize.ToString());
+                var a = await _catBox.UploadImage(new StreamUploadRequest()
+                {
+                    Stream = file,
+                    FileName = Path.GetFileName(res.Data)
+                });
+            // }
+            
+            Console.WriteLine("FileURL" + a);
             return res.Data;
         }
 

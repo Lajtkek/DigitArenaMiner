@@ -13,6 +13,7 @@ using DigitArenaBot.Services;
 using System.Configuration;
 using System.Linq;
 using System.Threading;
+using CatBox.NET;
 using DigitArenaBot;
 using DigitArenaBot.Classes;
 using Discord.Rest;
@@ -58,6 +59,7 @@ var services = builder.Services
     .AddSingleton<CommandHandler>()
     .AddSingleton<MessageReactionService>()
     .AddSingleton<TimeService>()
+    .AddCatBoxServices(f => f.CatBoxUrl = new Uri("https://catbox.moe/user/api.php"))
     .AddSingleton<DynamicCommandService>()
     .AddSingleton<OpenAIService>()
     .AddSingleton<VideoDownloadService>()
