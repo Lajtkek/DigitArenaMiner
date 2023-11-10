@@ -246,7 +246,7 @@ namespace DigitArenaBot.Services
          }
          
          [SlashCommand("repost", "stáhne a repostne video")]
-         public async Task RepostVideo(string url, VideoFormat format = VideoFormat.Best)
+         public async Task RepostVideo(string url, string autorText = "", VideoFormat format = VideoFormat.Best)
          {
              if(!await _helperService.IsUserPrivileged(Context.User))
              {
@@ -255,16 +255,16 @@ namespace DigitArenaBot.Services
              }
 
              await DeferAsync();
-             var message = await Context.Channel.SendMessageAsync($"Progress");
+             // var message = await Context.Channel.SendMessageAsync($"Progress");
              
              try
              {
                  var videoUrl = await _videoDownloadService.DownloadVideo(url, format, onProgress: (progressString) =>
                  {
-                     message.ModifyAsync((m) =>
-                     {
-                         m.Content = progressString;
-                     });
+                     // message.ModifyAsync((m) =>
+                     // {
+                     //     m.Content = progressString;
+                     // });
                      
                      return "";
                  });
@@ -273,8 +273,9 @@ namespace DigitArenaBot.Services
                  
                  try
                  {
-                     await message.DeleteAsync();
-                     await FollowupWithFileAsync(videStream, "video.mp4", $"**Tady máš video kámo!** \n Původní odkaz:<{url}>");
+                     // await message.DeleteAsync();
+                     autorText = autorText == "" ? "" : $"{Context.User.Username}:{autorText} \n";
+                     await FollowupWithFileAsync(videStream, "video.mp4", $"**Tady máš video kámo!**\n{autorText} Původní odkaz:<{url}>");
                  }
                  catch (Exception e)
                  {

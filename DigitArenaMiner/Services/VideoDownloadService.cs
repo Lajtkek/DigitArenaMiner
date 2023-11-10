@@ -53,14 +53,14 @@ namespace DigitArenaBot.Services
             Directory.CreateDirectory(_FFmpegPath);
             
             _maxVideoLengthSeconds = _config.GetSection("MaxVideoDuration").Get<float>();
-
+            
         }
 
         public async Task Init()
         {
-            // await YoutubeDLSharp.Utils.DownloadYtDlp(_youtubeDdpPath);
+            await YoutubeDLSharp.Utils.DownloadYtDlp(_youtubeDdpPath);
             //await ExecuteUnixCommand("echo XDDDDDDDDDDDDDDDDDDDDDDDDd");
-            // await YoutubeDLSharp.Utils.DownloadFFmpeg(_FFmpegPath);
+            await YoutubeDLSharp.Utils.DownloadFFmpeg(_FFmpegPath);
         }
 
         public async Task<string> ExecuteUnixCommand(string command)
@@ -86,25 +86,14 @@ namespace DigitArenaBot.Services
             var formatString = format == ExampleCommands.VideoFormat.Best ? "bestvideo+bestaudio/best" : "worstvideo+worstaudio/worst";
             
             var ytdl = CreateYoutubeDl();
+            
+            
             var data = await ytdl.RunVideoDataFetch(url);
 
             if (data.Data == null || data.Data.Duration == null) throw new Exception("Data o videu jsou null.");
-
-            var mexVideoDuration = formatString == "bestvideo+bestaudio/best"
-                ? _maxVideoLengthSeconds
-                : _maxVideoLengthSeconds * 6;
             
-            
-            Console.WriteLine($"Délka {data.Data.Duration} - {mexVideoDuration}");
-            if (data.Data.Duration.Value > mexVideoDuration)
-            {
-                throw new Exception($"Video (délky {data.Data.Duration}s) je delší než povolená délka (Best-{_maxVideoLengthSeconds}s; Worst-{mexVideoDuration}s)");
-            }
-
             ytdl.OutputFolder = Path.Combine(_downloadPath, data.Data.ID);
 
-            var timer = new Stopwatch();
-            timer.Start();
             var res = await ytdl.RunVideoDownload(url, formatString, mergeFormat: DownloadMergeFormat.Mp4, overrideOptions: new OptionSet()
             {
                 RestrictFilenames = true,
@@ -112,20 +101,20 @@ namespace DigitArenaBot.Services
                 RecodeVideo = VideoRecodeFormat.Webm,
             }, progress: new Progress<DownloadProgress>((progress =>
             {
-                if (timer.Elapsed.Seconds < 4)
+                var size = ByteSize.Parse(progress.TotalDownloadSize);
+                var maxSize = ByteSize.Parse("25MB");
+                if (size.Bytes > maxSize.Bytes)
                 {
-                    return;
+                    throw new Exception($"Video je větší než {maxSize.ToString()}");
                 }
-
+                
                 var message = $"{progress.State}: {((int)(progress.Progress * 100)).ToString()}%";
                 if (progress.State == DownloadState.Success) message = "Success";
                 
                 onProgress?.Invoke(message);
                 Console.WriteLine(message);
-                timer.Restart();
             })));
 
-            timer.Stop();
 
             // var maxDiscordFileSize = ByteSize.Parse("22MB");
             //
@@ -161,8 +150,8 @@ namespace DigitArenaBot.Services
         protected YoutubeDL CreateYoutubeDl()
         {
             var ytdl = new YoutubeDL();
-            ytdl.YoutubeDLPath = "yt-dlp";
-            ytdl.FFmpegPath = "ffmpeg";
+            ytdl.YoutubeDLPath = Path.Combine(_youtubeDdpPath, "yt-dlp");
+            ytdl.FFmpegPath = Path.Combine(_FFmpegPath, "ffmpeg");
             return ytdl;
         }
     }
