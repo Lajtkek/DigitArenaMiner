@@ -58,10 +58,11 @@ namespace DigitArenaBot.Services
 
         public async Task Init()
         {
-            await YoutubeDLSharp.Utils.DownloadYtDlp(_youtubeDdpPath);
+            // await YoutubeDLSharp.Utils.DownloadYtDlp(_youtubeDdpPath);
             //await ExecuteUnixCommand("echo XDDDDDDDDDDDDDDDDDDDDDDDDd");
-            await YoutubeDLSharp.Utils.DownloadFFmpeg(_FFmpegPath);
+            // await YoutubeDLSharp.Utils.DownloadFFmpeg(_FFmpegPath);
         }
+        
 
         public async Task<string> ExecuteUnixCommand(string command)
         {
@@ -94,27 +95,41 @@ namespace DigitArenaBot.Services
             
             ytdl.OutputFolder = Path.Combine(_downloadPath, data.Data.ID);
 
-            var res = await ytdl.RunVideoDownload(url, formatString, mergeFormat: DownloadMergeFormat.Mp4, overrideOptions: new OptionSet()
-            {
-                RestrictFilenames = true,
-                WindowsFilenames = true,
-                RecodeVideo = VideoRecodeFormat.Webm,
-            }, progress: new Progress<DownloadProgress>((progress =>
-            {
-                var size = ByteSize.Parse(progress.TotalDownloadSize);
-                var maxSize = ByteSize.Parse("25MB");
-                if (size.Bytes > maxSize.Bytes)
-                {
-                    throw new Exception($"Video je větší než {maxSize.ToString()}");
-                }
-                
-                var message = $"{progress.State}: {((int)(progress.Progress * 100)).ToString()}%";
-                if (progress.State == DownloadState.Success) message = "Success";
-                
-                onProgress?.Invoke(message);
-                Console.WriteLine(message);
-            })));
+            var tokenSource = new CancellationTokenSource();
 
+            try
+            {
+                var res = await ytdl.RunVideoDownload(url, formatString, mergeFormat: DownloadMergeFormat.Mp4,
+                    ct: tokenSource.Token, overrideOptions: new OptionSet()
+                    {
+                        RestrictFilenames = true,
+                        WindowsFilenames = true,
+                        RecodeVideo = VideoRecodeFormat.Webm,
+                    }, progress: new Progress<DownloadProgress>((progress =>
+                    {
+                        var downloaded = string.IsNullOrWhiteSpace(progress.TotalDownloadSize)
+                            ? "0B"
+                            : progress.TotalDownloadSize;
+                        var size = ByteSize.Parse(downloaded);
+                        var maxSize = ByteSize.Parse("25MB");
+                        if (size.Bytes > maxSize.Bytes)
+                        {
+                            tokenSource.Cancel();
+                        }
+
+                        var message = $"{progress.State}: {((int)(progress.Progress * 100)).ToString()}%";
+                        if (progress.State == DownloadState.Success) message = "Success";
+
+                        onProgress?.Invoke(message);
+                        Console.WriteLine(message);
+                    })));
+                return res.Data;
+            }
+            catch (Exception e)
+            {
+                if (tokenSource.Token.IsCancellationRequested) throw new Exception("Video bylo větší než 25MB");
+                throw e;
+            }
 
             // var maxDiscordFileSize = ByteSize.Parse("22MB");
             //
@@ -132,7 +147,6 @@ namespace DigitArenaBot.Services
             // }
             
             // Console.WriteLine("FileURL" + a);
-            return res.Data;
         }
 
         public Task<FileStream> GetVideoStream(string path)
@@ -150,8 +164,8 @@ namespace DigitArenaBot.Services
         protected YoutubeDL CreateYoutubeDl()
         {
             var ytdl = new YoutubeDL();
-            ytdl.YoutubeDLPath = Path.Combine(_youtubeDdpPath, "yt-dlp");
-            ytdl.FFmpegPath = Path.Combine(_FFmpegPath, "ffmpeg");
+            ytdl.YoutubeDLPath = "yt-dlp";
+            ytdl.FFmpegPath = "ffmpeg";
             return ytdl;
         }
     }
