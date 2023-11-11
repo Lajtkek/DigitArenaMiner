@@ -257,7 +257,7 @@ namespace DigitArenaBot.Services
                  return;
              }
 
-             if (_allowedRepostUrls.Any(x => url.StartsWith(x)))
+             if (!_allowedRepostUrls.Any(x => url.StartsWith(x)))
              {
                  await RespondAsync("**Toto url neni supported, if its legit tell lajtkek to add it to config**");
                  return;

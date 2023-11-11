@@ -120,10 +120,11 @@ namespace DigitArenaBot.Services
                         properties.Content = "Typing...";
                     });
                     
-                    var response = await client.GetChatCompletionsAsync("gpt-3.5-turbo", options);
 
                     try
                     {
+                        var response = await client.GetChatCompletionsAsync("gpt-3.5-turbo", options);
+                        
                         await messageReply.ModifyAsync(properties =>
                         {
                             properties.Content = string.Join(" ",
