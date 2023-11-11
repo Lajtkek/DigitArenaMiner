@@ -61,13 +61,14 @@ namespace DigitArenaBot.Services
             // await YoutubeDLSharp.Utils.DownloadYtDlp(_youtubeDdpPath);
             //await ExecuteUnixCommand("echo XDDDDDDDDDDDDDDDDDDDDDDDDd");
             // await YoutubeDLSharp.Utils.DownloadFFmpeg(_FFmpegPath);
+            // ExecuteUnixCommand("");
         }
         
 
-        public async Task<string> ExecuteUnixCommand(string command)
+        public async Task<string> ExecuteUnixCommand(string app,string command)
         {
             var psi = new ProcessStartInfo();
-            psi.FileName = "/bin/bash";
+            psi.FileName = app;
             psi.Arguments = command;
             psi.RedirectStandardOutput = true;
             psi.UseShellExecute = false;
@@ -75,7 +76,7 @@ namespace DigitArenaBot.Services
 
             using var process = Process.Start(psi);
 
-            process.WaitForExitAsync();
+            process.WaitForExit();
 
             var output = process.StandardOutput.ReadToEnd();
 
@@ -89,11 +90,11 @@ namespace DigitArenaBot.Services
             var ytdl = CreateYoutubeDl();
             
             
-            var data = await ytdl.RunVideoDataFetch(url);
-
-            if (data.Data == null || data.Data.Duration == null) throw new Exception("Data o videu jsou null.");
+            // var data = await ytdl.RunVideoDataFetch(url);
+            //
+            // if (data.Data == null || data.Data.Duration == null) throw new Exception("Data o videu jsou null.");
             
-            ytdl.OutputFolder = Path.Combine(_downloadPath, data.Data.ID);
+            ytdl.OutputFolder = Path.Combine(_downloadPath, "TempVideoFolder");
 
             var tokenSource = new CancellationTokenSource();
 
@@ -123,7 +124,19 @@ namespace DigitArenaBot.Services
                         onProgress?.Invoke(message);
                         Console.WriteLine(message);
                     })));
-                return res.Data;
+                
+                Console.WriteLine("Converting");
+                var filename = Path.GetFileName(res.Data);
+                var folder = res.Data.Replace(filename, "");
+                var newFilename = Path.Combine(folder, "Converted_" + filename.Replace("webm", "mp4"));
+
+                Console.WriteLine("Command:" + "ffmpeg " +
+                                  $"-i \"{res.Data}\" -vcodec copy -acodec copy \"{newFilename}\"");
+                await ExecuteUnixCommand("ffmpeg",$"-i \"{res.Data}\" -vcodec copy -acodec copy \"{newFilename}\"");
+                
+                Console.WriteLine("Converting");
+
+                return newFilename;
             }
             catch (Exception e)
             {
