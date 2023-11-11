@@ -33,6 +33,7 @@ namespace DigitArenaBot.Services
         private readonly VideoDownloadService _videoDownloadService;
         private readonly HelperService _helperService;
         private readonly OpenAIService _openAiService;
+        private readonly List<string> _allowedRepostUrls = new ();
         
 
         private List<ulong> _allowedChannels;
@@ -53,6 +54,8 @@ namespace DigitArenaBot.Services
 
             _allowedChannels = _config.GetSection("AllowedChannels").Get<List<ulong>>();
             
+            _allowedRepostUrls = _config.GetSection("AllowedUrls").Get<List<string>>();
+                
             var userActions = _config.GetSection("UserActions").Get<List<UserAction>>();
         }
 
@@ -254,6 +257,12 @@ namespace DigitArenaBot.Services
                  return;
              }
 
+             if (_allowedRepostUrls.Any(x => url.StartsWith(x)))
+             {
+                 await RespondAsync("**Toto url neni supported, if its legit tell lajtkek to add it to config**");
+                 return;
+             }
+             
              await DeferAsync();
              // var message = await Context.Channel.SendMessageAsync($"Progress");
              
