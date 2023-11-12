@@ -56,7 +56,7 @@ namespace DigitArenaBot.Services
 
             _client.MessageReceived += async message =>
             {
-                if(message.Author.Id == 1155178035046252555) return;
+                if(message.Author.Id == _client.CurrentUser.Id) return;
 
                 if (message.Channel.Id == 1145463500085411910) return;
                 if (message.Author.Id != 256114627794960384) {
@@ -77,7 +77,7 @@ namespace DigitArenaBot.Services
     
                     if(replyMsg == null) return;
 
-                    if (replyMsg.Author.Id != 1155178035046252555 && !message.Content.ToLower().Contains("tomoko")) return;
+                    if (replyMsg.Author.Id != _client.CurrentUser.Id && !message.Content.ToLower().Contains("tomoko")) return;
 
                     messageContext.Add(replyMsg);
                     messageContext.Add(message);
