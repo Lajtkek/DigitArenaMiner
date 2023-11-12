@@ -262,6 +262,12 @@ namespace DigitArenaBot.Services
                  await RespondAsync("**Toto url neni supported, if its legit tell lajtkek to add it to config**");
                  return;
              }
+
+             if (url.Contains("\"") || url.Contains(";"))
+             {
+                 await RespondAsync("**Toto url je neplatné**");
+                 return;
+             }
              
              await DeferAsync();
              // var message = await Context.Channel.SendMessageAsync($"Progress");
