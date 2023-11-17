@@ -270,16 +270,16 @@ namespace DigitArenaBot.Services
              }
              
              await DeferAsync();
-             // var message = await Context.Channel.SendMessageAsync($"Progress");
+             var message = await Context.Channel.SendMessageAsync($"Progress");
              
              try
              {
                  var videoUrl = await _videoDownloadService.DownloadVideo(url, onProgress: (progressString) =>
                  {
-                     // message.ModifyAsync((m) =>
-                     // {
-                     //     m.Content = progressString;
-                     // });
+                     message.ModifyAsync((m) =>
+                     {
+                         m.Content = progressString;
+                     });
                      
                      return "";
                  });
@@ -288,12 +288,13 @@ namespace DigitArenaBot.Services
                  
                  try
                  {
-                     // await message.DeleteAsync();
+                     await message.DeleteAsync();
                      autorText = autorText == "" ? "" : $"{Context.User.Username}:{autorText} \n";
                      await FollowupWithFileAsync(videStream, "video.mp4", $"**Tady máš video kámo!**\n{autorText} Původní odkaz:<{url}>");
                  }
                  catch (Exception e)
                  {
+                     await message.DeleteAsync();
                      await Context.Channel.SendMessageAsync($"Nastala výjimka při postování videa. ({e.Message})");
                  }
 

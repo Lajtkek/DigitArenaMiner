@@ -130,18 +130,18 @@ namespace DigitArenaBot.Services
                         Console.WriteLine(message);
                     })));
                 
-                Console.WriteLine("Converting");
-                var filename = Path.GetFileName(res.Data);
-                var folder = res.Data.Replace(filename, "");
-                var newFilename = Path.Combine(folder, "Converted_" + filename.Replace("webm", "mp4"));
+                // Console.WriteLine("Converting");
+                // var filename = Path.GetFileName(res.Data);
+                // var folder = res.Data.Replace(filename, "");
+                // var newFilename = Path.Combine(folder, "Converted_" + filename.Replace("webm", "mp4"));
 
-                Console.WriteLine("Command:" + "ffmpeg " +
-                                  $"-i \"{res.Data}\" -vcodec copy -acodec copy \"{newFilename}\"");
-                await ExecuteUnixCommand("ffmpeg",$"-i \"{res.Data}\" -vcodec copy -acodec copy \"{newFilename}\"");
-                
-                Console.WriteLine("Converting");
+                // Console.WriteLine("Command:" + "ffmpeg " +
+                //                   $"-i \"{res.Data}\" -vcodec copy -acodec copy \"{newFilename}\"");
+                // await ExecuteUnixCommand("ffmpeg",$"-i \"{res.Data}\" -vcodec copy -acodec copy \"{newFilename}\"");
+                //
+                // Console.WriteLine("Converting");
 
-                return newFilename;
+                return res.Data;
             }
             catch (Exception e)
             {
