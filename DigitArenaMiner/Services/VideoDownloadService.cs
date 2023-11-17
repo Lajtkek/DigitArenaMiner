@@ -83,9 +83,9 @@ namespace DigitArenaBot.Services
             return output;
         }
 
-        public async Task<string> DownloadVideo(string url, ExampleCommands.VideoFormat format,  Func<string, string> onProgress = null)
+        public async Task<string> DownloadVideo(string url,  Func<string, string> onProgress = null)
         {
-            var formatString = format == ExampleCommands.VideoFormat.Best ? "bestvideo+bestaudio/best" : "worstvideo+worstaudio/worst";
+            // var formatString = format == ExampleCommands.VideoFormat.Best ? "bestvideo+bestaudio/best" : "worstvideo+worstaudio/worst";
             
             var ytdl = CreateYoutubeDl();
             
@@ -98,15 +98,20 @@ namespace DigitArenaBot.Services
 
             var tokenSource = new CancellationTokenSource();
 
+            var optionSet = new OptionSet()
+            {
+                FormatSort = "vcodec:h264",
+                MaxFilesize = "25M",
+                Format = "(mp4)",
+                RestrictFilenames = true,
+                WindowsFilenames = true,
+                ConcurrentFragments = 4
+            };
+            
             try
             {
-                var res = await ytdl.RunVideoDownload(url, formatString, mergeFormat: DownloadMergeFormat.Mp4,
-                    ct: tokenSource.Token, overrideOptions: new OptionSet()
-                    {
-                        RestrictFilenames = true,
-                        WindowsFilenames = true,
-                        RecodeVideo = VideoRecodeFormat.Webm,
-                    }, progress: new Progress<DownloadProgress>((progress =>
+                var res = await ytdl.RunVideoDownload(url, overrideOptions: optionSet,
+                    ct: tokenSource.Token, progress: new Progress<DownloadProgress>((progress =>
                     {
                         var downloaded = string.IsNullOrWhiteSpace(progress.TotalDownloadSize)
                             ? "0B"

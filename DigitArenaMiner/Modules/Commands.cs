@@ -249,7 +249,7 @@ namespace DigitArenaBot.Services
          }
          
          [SlashCommand("repost", "stáhne a repostne video")]
-         public async Task RepostVideo(string url, string autorText = "", VideoFormat format = VideoFormat.Best)
+         public async Task RepostVideo(string url, string autorText = "")
          {
              if(!await _helperService.IsUserPrivileged(Context.User))
              {
@@ -274,7 +274,7 @@ namespace DigitArenaBot.Services
              
              try
              {
-                 var videoUrl = await _videoDownloadService.DownloadVideo(url, format, onProgress: (progressString) =>
+                 var videoUrl = await _videoDownloadService.DownloadVideo(url, onProgress: (progressString) =>
                  {
                      // message.ModifyAsync((m) =>
                      // {
