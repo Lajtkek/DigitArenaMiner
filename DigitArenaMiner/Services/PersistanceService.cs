@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using DigitArenaBot.Classes;
+using DigitArenaBot.Classes.Game;
 using DigitArenaBot.Models;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,12 @@ public interface IPersistanceService
     public Task<bool> SaveCumRecord(ulong userId, string description);
     public Task<List<CumRecord>> GetCumRecords(ulong userId, int size);
     public Task<List<LeaderboardItem>> GetCumLeaderboard(int size);
+
+    public Task<PollQuestion> CreateQuestion(ulong userId, string title, List<string> answers);
+    public Task ChangeAnswer(ulong userId, Guid idQuestion, Guid idAnswer);
+
+    public Task<PollQuestion> GetQuestion(Guid idQuestion);
+    public Task<Dictionary<int, List<UserPollAnswer>>>  GetQuestionAnswers(Guid idQuestion);
 }
 
 public class PersistanceService : IPersistanceService
@@ -185,5 +192,71 @@ public class PersistanceService : IPersistanceService
             Count = x.TotalCount,
             Id = x.UserId,
         }).ToList();
+    }
+
+    public async Task<PollQuestion> CreateQuestion(ulong userId, string title, List<string> answers)
+    {
+        var question = new PollQuestion()
+        {
+            Title = title,
+            CreatorId = userId,
+            Answers = answers.Select((x,index) => new PollAnswer()
+            {
+                Body = x,
+                Index = index
+            }).ToList()
+        };
+
+        await _context.AddAsync(question);
+        await _context.SaveChangesAsync();
+
+        return question;
+    }
+
+    public async Task ChangeAnswer(ulong userId, Guid idQuestion, Guid idAnswer)
+    {
+        await _context.UserPollAnswers.Where(x => x.IdQuestion == idQuestion && x.UserId == userId).ExecuteDeleteAsync();
+        
+        var answer = new UserPollAnswer()
+        {
+            UserId = userId,
+            IdQuestion = idQuestion,
+            IdAnswer = idAnswer,
+        };
+
+        await _context.UserPollAnswers.AddAsync(answer);
+
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<PollQuestion> GetQuestion(Guid idQuestion)
+    {
+        return await _context.Questions.Include(x => x.Answers).FirstAsync(x => x.Id == idQuestion);
+    }
+
+    public async Task<Dictionary<int, List<UserPollAnswer>>> GetQuestionAnswers(Guid idQuestion)
+    {
+        var dictionary = new Dictionary<int, List<UserPollAnswer>>();
+
+        var questions = await _context.UserPollAnswers.Where(x => x.IdQuestion == idQuestion).ToListAsync();
+        var question = await GetQuestion(idQuestion);
+        
+        questions.ForEach(a =>
+        {
+            var index = question.Answers.First(x => x.Id == a.IdAnswer).Index;
+            if (dictionary.ContainsKey(index))
+            {
+                dictionary.GetValueOrDefault(index)?.Add(a);
+            }
+            else
+            {
+                dictionary.Add(index, new List<UserPollAnswer>()
+                {
+                    a
+                });
+            }
+        });
+        
+        return dictionary;
     }
 }
