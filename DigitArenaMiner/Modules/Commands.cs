@@ -288,9 +288,13 @@ namespace DigitArenaBot.Services
                  
                  try
                  {
-                     await message.DeleteAsync();
+                     await message.ModifyAsync((m) =>
+                     {
+                         m.Content = "Uploading to discord";
+                     });
                      autorText = autorText == "" ? "" : $"{Context.User.Username}:{autorText} \n";
                      await FollowupWithFileAsync(videStream, "video.mp4", $"**Tady máš video kámo!**\n{autorText} Původní odkaz:<{url}>");
+                     await message.DeleteAsync();
                  }
                  catch (Exception e)
                  {
@@ -303,6 +307,10 @@ namespace DigitArenaBot.Services
              }
              catch (Exception e)
              {
+                 Console.WriteLine(e.Data);
+                 Console.WriteLine(e.Source);
+                 Console.WriteLine(e.StackTrace);
+                 await message.DeleteAsync();
                  await FollowupAsync($"Nastala exception: {e.Message}");
              }
          }

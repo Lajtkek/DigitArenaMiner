@@ -83,7 +83,7 @@ namespace DigitArenaBot.Services
             return output;
         }
 
-        public async Task<string> DownloadVideo(string url,  Func<string, string> onProgress = null)
+        public async Task<string> DownloadVideo(string url,  Func<string, string> onProgress = null, bool ignoreFormat = false)
         {
             // var formatString = format == ExampleCommands.VideoFormat.Best ? "bestvideo+bestaudio/best" : "worstvideo+worstaudio/worst";
             
@@ -100,19 +100,36 @@ namespace DigitArenaBot.Services
 
             var optionSet = new OptionSet()
             {
-                FormatSort = "vcodec:h264",
-                MaxFilesize = "25M",
-                Format = "(mp4)",
+                // FormatSort = "vcodec:h264,size:25M",
+                // Format = "b[ext=mp4]",
                 RestrictFilenames = true,
                 WindowsFilenames = true,
-                ConcurrentFragments = 4
+                ConcurrentFragments = 4,
+                // Output = $"/app/Downloads/Videos/{DateTime.UtcNow.ToString("yyyyMMddHHmmssfff")}",
+                NoRestrictFilenames = false,
+                TrimFilenames = 16
             };
+
+            if (!ignoreFormat)
+            {
+                optionSet.FormatSort = "vcodec:h264,size:25M";
+                optionSet.Format = "b[ext=mp4]";
+            }
+            
+            Console.WriteLine(ytdl.OutputFolder);
             
             try
             {
+                var lastProgress = new DownloadProgress(DownloadState.None);
+                var timer = new Timer(state =>
+                {
+                    onProgress?.Invoke($"{lastProgress.State}: {lastProgress.Progress} (eta:{lastProgress.ETA})");
+                }, null, 0, 3000);
+                
                 var res = await ytdl.RunVideoDownload(url, overrideOptions: optionSet,
                     ct: tokenSource.Token, progress: new Progress<DownloadProgress>((progress =>
                     {
+                        lastProgress = progress;
                         var downloaded = string.IsNullOrWhiteSpace(progress.TotalDownloadSize)
                             ? "0B"
                             : progress.TotalDownloadSize;
@@ -126,7 +143,6 @@ namespace DigitArenaBot.Services
                         var message = $"{progress.State}: {((int)(progress.Progress * 100)).ToString()}%";
                         if (progress.State == DownloadState.Success) message = "Success";
 
-                        onProgress?.Invoke(message);
                         Console.WriteLine(message);
                     })));
                 
@@ -141,6 +157,15 @@ namespace DigitArenaBot.Services
                 //
                 // Console.WriteLine("Converting");
 
+                await timer.DisposeAsync();
+
+                if (string.IsNullOrWhiteSpace(res.Data))
+                {
+                    if (ignoreFormat) throw new Exception("NEJDE TO");
+
+                    return await DownloadVideo(url, onProgress, true);
+                }
+                
                 return res.Data;
             }
             catch (Exception e)
