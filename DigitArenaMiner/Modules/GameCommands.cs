@@ -142,19 +142,34 @@ namespace DigitArenaBot.Services
              return new string(_fullChar, charsToFill) + new string(_blankChar, _barLength - charsToFill);
          }
          
-         public (Embed, MessageComponent) CreateQuestionEmbedBuilder(PollQuestion question, Dictionary<int, List<UserPollAnswer>>? usuerAsnwers = null)
+         public (Embed, MessageComponent) CreateQuestionEmbedBuilder(PollQuestion question, SocketMessageComponent? component = null, Dictionary<int, List<UserPollAnswer>>? userAnswers = null)
          {
              // display
              var displayEmbed = new EmbedBuilder();
              displayEmbed.Title = question.Title;
              foreach (var _answer in question.Answers)
              {
-                 var value = usuerAsnwers == null ? new string(_blankChar, _barLength) : GetOptoinBar(_answer.Index, usuerAsnwers);
+                 var value = userAnswers == null ? new string(_blankChar, _barLength) : GetOptoinBar(_answer.Index, userAnswers);
                  displayEmbed.Fields.Add(new EmbedFieldBuilder()
                  {
                      Name = _answer.Body,
                      Value =  value
                  });
+
+                 if (component != null && userAnswers != null)
+                 {
+                     var questionAnswers = userAnswers.GetValueOrDefault(_answer.Index);
+                     if(questionAnswers == null) continue;
+
+                     var guild = _client.GetGuild(component.GuildId.Value);
+                     var users = guild.Users.Where(u => questionAnswers.Any(x => x.UserId == u.Id));
+                     
+                     displayEmbed.Fields.Add(new EmbedFieldBuilder()
+                     {
+                         Name = "Hlasoval: ",
+                         Value =  string.Join(",", users.Select(x => x.Mention))
+                     });
+                 }
              }
     
              //buttons
@@ -180,8 +195,7 @@ namespace DigitArenaBot.Services
              // update component
              var question = await _persistanceService.GetQuestion(idQuestion);
              var voteResults = await _persistanceService.GetQuestionAnswers(idQuestion);
-             var (embed, messageComponent) = CreateQuestionEmbedBuilder(question, voteResults);
-
+             var (embed, messageComponent) = CreateQuestionEmbedBuilder(question, component, voteResults);
              
              await component.ModifyOriginalResponseAsync(x =>
              {
