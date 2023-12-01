@@ -161,7 +161,13 @@ namespace DigitArenaBot.Services
 
                 if (string.IsNullOrWhiteSpace(res.Data))
                 {
-                    if (ignoreFormat) throw new Exception("NEJDE TO");
+                    if (ignoreFormat)
+                    {
+                        if (url.Contains("instagram"))
+                            throw new Exception(
+                                $"Video se nepodařilo stáhnout, ALE zkusíme toto: {url.Replace("instagram", "ddinstagram")}");
+                        throw new Exception("NEJDE TO a neni to instagram");
+                    }
 
                     return await DownloadVideo(url, onProgress, true);
                 }
