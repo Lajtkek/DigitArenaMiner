@@ -56,43 +56,9 @@ namespace DigitArenaBot.Services
             
         }
 
-        public async Task Init()
-        {
-            // await YoutubeDLSharp.Utils.DownloadYtDlp(_youtubeDdpPath);
-            //await ExecuteUnixCommand("echo XDDDDDDDDDDDDDDDDDDDDDDDDd");
-            // await YoutubeDLSharp.Utils.DownloadFFmpeg(_FFmpegPath);
-            // ExecuteUnixCommand("");
-        }
-        
-
-        public async Task<string> ExecuteUnixCommand(string app,string command)
-        {
-            var psi = new ProcessStartInfo();
-            psi.FileName = app;
-            psi.Arguments = command;
-            psi.RedirectStandardOutput = true;
-            psi.UseShellExecute = false;
-            psi.CreateNoWindow = true;
-
-            using var process = Process.Start(psi);
-
-            process.WaitForExit();
-
-            var output = process.StandardOutput.ReadToEnd();
-
-            return output;
-        }
-
         public async Task<string> DownloadVideo(string url,  Func<string, string> onProgress = null, bool ignoreFormat = false)
         {
-            // var formatString = format == ExampleCommands.VideoFormat.Best ? "bestvideo+bestaudio/best" : "worstvideo+worstaudio/worst";
-            
             var ytdl = CreateYoutubeDl();
-            
-            
-            // var data = await ytdl.RunVideoDataFetch(url);
-            //
-            // if (data.Data == null || data.Data.Duration == null) throw new Exception("Data o videu jsou null.");
             
             ytdl.OutputFolder = Path.Combine(_downloadPath, "TempVideoFolder");
 
@@ -100,12 +66,9 @@ namespace DigitArenaBot.Services
 
             var optionSet = new OptionSet()
             {
-                // FormatSort = "vcodec:h264,size:25M",
-                // Format = "b[ext=mp4]",
                 RestrictFilenames = true,
                 WindowsFilenames = true,
                 ConcurrentFragments = 4,
-                // Output = $"/app/Downloads/Videos/{DateTime.UtcNow.ToString("yyyyMMddHHmmssfff")}",
                 NoRestrictFilenames = false,
                 TrimFilenames = 16
             };
@@ -145,17 +108,6 @@ namespace DigitArenaBot.Services
 
                         Console.WriteLine(message);
                     })));
-                
-                // Console.WriteLine("Converting");
-                // var filename = Path.GetFileName(res.Data);
-                // var folder = res.Data.Replace(filename, "");
-                // var newFilename = Path.Combine(folder, "Converted_" + filename.Replace("webm", "mp4"));
-
-                // Console.WriteLine("Command:" + "ffmpeg " +
-                //                   $"-i \"{res.Data}\" -vcodec copy -acodec copy \"{newFilename}\"");
-                // await ExecuteUnixCommand("ffmpeg",$"-i \"{res.Data}\" -vcodec copy -acodec copy \"{newFilename}\"");
-                //
-                // Console.WriteLine("Converting");
 
                 await timer.DisposeAsync();
 
@@ -179,23 +131,6 @@ namespace DigitArenaBot.Services
                 if (tokenSource.Token.IsCancellationRequested) throw new Exception("Video bylo větší než 25MB");
                 throw e;
             }
-
-            // var maxDiscordFileSize = ByteSize.Parse("22MB");
-            //
-            // var file = File.OpenRead(res.Data);
-            // var fileSize = new ByteSize(file.Length);
-
-            // if (fileSize > maxDiscordFileSize)
-            // {
-            // Console.WriteLine(fileSize.ToString());
-            //     var a = await _catBox.UploadImage(new StreamUploadRequest()
-            //     {
-            //         Stream = file,
-            //         FileName = Path.GetFileName(res.Data)
-            //     });
-            // }
-            
-            // Console.WriteLine("FileURL" + a);
         }
 
         public Task<FileStream> GetVideoStream(string path)

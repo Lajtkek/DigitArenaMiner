@@ -77,7 +77,6 @@ var x = services.GetRequiredService<OpenAIService>();
 
 
 var _videoDownloadService = services.GetRequiredService<VideoDownloadService>();
-await _videoDownloadService.Init();
 
 _testGuildId = ulong.Parse(_config["TestGuildId"]);
 _mineableEmotes = _config.GetSection("MineableEmotes").Get<List<MineableEmote>>();
