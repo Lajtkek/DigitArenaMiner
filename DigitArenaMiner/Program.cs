@@ -48,8 +48,6 @@ var socketConfig = new DiscordSocketConfig()
 
 var socketClient = new DiscordSocketClient(socketConfig);
 
-var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING");
-
 var services = builder.Services
     .AddSingleton(socketClient)
     .AddSingleton<HelperService>()
@@ -59,7 +57,6 @@ var services = builder.Services
     .AddSingleton<CommandHandler>()
     .AddSingleton<MessageReactionService>()
     .AddSingleton<TimeService>()
-    .AddCatBoxServices(f => f.CatBoxUrl = new Uri("https://catbox.moe/user/api.php"))
     .AddSingleton<DynamicCommandService>()
     .AddSingleton<OpenAIService>()
     .AddSingleton<VideoDownloadService>()
@@ -90,7 +87,7 @@ _client.ReactionAdded += HandleReactionAsync;
 
 await services.GetRequiredService<CommandHandler>().InitializeAsync();
 
-var token = Environment.GetEnvironmentVariable("TOKEN");
+var token = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
 
 Console.WriteLine("TOKEN:" + token);
 

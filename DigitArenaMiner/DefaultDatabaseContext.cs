@@ -17,8 +17,7 @@ public class DefaultDatabaseContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        var connectionString =
-            "Server=monorail.proxy.rlwy.net;Port=33106;Database=railway;Uid=postgres;Pwd=bfA3a24DEFB-2A1A6Gdgf5*EDd2ecFge"; //Environment.GetEnvironmentVariable("CONNECTION_STRING");
+        var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING");
         base.OnConfiguring(optionsBuilder);
         optionsBuilder.UseNpgsql(connectionString);
     }
