@@ -15,6 +15,14 @@ using Microsoft.Extensions.Configuration;
 
 namespace DigitArenaBot.Services
 {
+    public static class StringExtensions
+    {
+        public static string NormalizeUsername(this string text)
+        {
+            return text.Replace(".", "").Replace(" ", "");
+        }
+    }
+    
     public class OpenAIService
     {
         private readonly DiscordSocketClient _client;
@@ -61,6 +69,7 @@ namespace DigitArenaBot.Services
             
             _client.MessageReceived += async message =>
             {
+                
                 if (message.Author.Id == _client.CurrentUser.Id) return;
 
                 if (message.Channel.Id == 1145463500085411910) return;
@@ -122,7 +131,7 @@ namespace DigitArenaBot.Services
                         options.Messages.Add(
                             new ChatMessage(isBot ? ChatRole.Assistant : ChatRole.User,
                                     $"{isMain}" + messageData.Content)
-                                { Name = isBot ? "Tomoko" : messageData.Author.Username });
+                                { Name = isBot ? "Tomoko" : messageData.Author.Username.NormalizeUsername() });
                     }
 
                     OpenAIClient client = CreateClient();
@@ -159,6 +168,7 @@ namespace DigitArenaBot.Services
                 }
             };
         }
+
 
         private async Task OnMessageWithAttachment(SocketMessage message)
         {

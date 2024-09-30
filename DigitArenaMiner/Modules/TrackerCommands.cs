@@ -61,6 +61,8 @@ public class TrackerCommands : InteractionModuleBase<SocketInteractionContext>
             return;
         }
 
+        await DeferAsync();
+    
         var records = await _persistanceService.GetCumRecords(user.Id, 10);
 
         var embed = new EmbedBuilder();
@@ -78,7 +80,7 @@ public class TrackerCommands : InteractionModuleBase<SocketInteractionContext>
             });
         }
 
-        await RespondAsync(null, embed: embed.Build());
+        await FollowupAsync(null, embed: embed.Build());
     }
     
     [SlashCommand("coomerboard", "yyy")]

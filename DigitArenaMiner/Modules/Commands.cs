@@ -3,11 +3,14 @@ using Discord.Interactions;
 using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Azure.AI.OpenAI;
 using DigitArenaBot.Classes;
+using DigitArenaBot.Classes.Reminder;
 using Discord.Commands;
 using Discord.Net;
 using Microsoft.Extensions.Configuration;
@@ -134,7 +137,7 @@ namespace DigitArenaBot.Services
         //     await FollowupAsync(null, embed: embedBuilder.Build(), allowedMentions: Discord.AllowedMentions.None);
         // }
         
-        [SlashCommand("good-morning", "idk")]
+        [SlashCommand("gm", "idk")]
         public async Task GoodMorning()
         {
             string username = Context.Interaction.User.Username;
@@ -155,6 +158,32 @@ namespace DigitArenaBot.Services
             await RespondAsync(
                 $"", new []{ embed });
         }
+        
+        
+         [SlashCommand("dopo", "idk")]
+        public async Task GoodMorning3()
+        {
+            string username = Context.Interaction.User.Username;
+
+            var embedBuilder = new EmbedBuilder
+            {
+                Title = $"Hello hello, good noon.",
+                Color = Color.Default, // You can set the color of the embed here,
+            };
+
+            // Add an image to the embed
+            var url = "https://gallery.lajtkep.dev/resources/65bbbc2d3d50818b775fe694f212bb9842394940041d99ab48fcb99c3a0c5cc9.mp4"; // Replace with the URL of the image you want to include
+
+            await DeferAsync();
+            using (var client = new System.Net.Http.HttpClient())
+            {
+                var videoBytes = await client.GetByteArrayAsync(url);
+
+                await FollowupWithFileAsync(new MemoryStream(videoBytes), "video.mp4", "Good noon!");
+            }
+        }
+        
+        
         
         [SlashCommand("good-morning-urinals", "idk")]
         public async Task GoodMorning2()
@@ -227,21 +256,35 @@ namespace DigitArenaBot.Services
              }
          }
 
-         // [SlashCommand("toggle-tomokoposting", "togluju tomokoposting")]
-         // private async Task ToggleTomokoPosting(string date)
-         // {
-         //     DateTime time;
-         //     var parsedDate = DateTime.TryParse(date, out time);
-         //
-         //     if (!parsedDate)
-         //     {
-         //         await RespondAsync($"Zadej UTC datum blbečku.");
-         //         return;
-         //     }
-         //
-         //     await _timeService.RegisterEvent(time);
-         //     await RespondAsync($"Registrován event na {time.ToUniversalTime()}");
-         // }
+         static string AddSpaceAfterLastNumber(string input)
+         {
+             return Regex.Replace(input, @"(\d)([a-zA-Z])", "$1 $2");
+         }
+         
+         [SlashCommand("remind-me", "togluju tomokoposting")]
+         private async Task ToggleTomokoPosting(string timeSpan, string message)
+         {
+             var timespanParser = new HumanTimeSpanParser.HumanTimeSpanParser();
+             TimeSpan? time = null;
+
+             try
+             {
+                 time = timespanParser.Parse(AddSpaceAfterLastNumber(timeSpan));
+
+                 if (time == null) throw new Exception();
+             }
+             catch (Exception e)
+             {
+                 await RespondAsync($"Ať jsem se snažila sebevíc nevím co myslíš \"{timeSpan}\".");
+             }
+
+             if (time == null) return;
+             var remindAt = DateTime.UtcNow.Add(time.Value);
+             await _timeService.RegisterEvent(new DiscordReminder(remindAt, Context.Guild.Id, Context.Channel.Id, Context.User.Id, message));
+             
+             CultureInfo csCZ = new CultureInfo("cs-CZ");
+             await RespondAsync($"Dobrá, jak chceš {DateTime.UtcNow.Add(TimeSpan.FromHours(2)).Add(time.Value).ToString("g", csCZ)} ti připomenu \"{message}\"");
+         }
          
          public enum VideoFormat {
              Best,
